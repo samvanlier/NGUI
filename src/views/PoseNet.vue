@@ -59,18 +59,18 @@ async function getEstimationStream (video: HTMLVideoElement, net: posenet.PoseNe
 //     : https://github.com/xunxdd/Posenet-Demo--In-My-Feelings-Challenge-AI/blob/master/src/components/Camera.vue
 
 export default class PoseNet extends Vue {
-    /**
+  /**
      * Every call to this method gives an estimation of the current input frame of the video feed
      * The setting are defined as the default ResNet and single pose
      * @returns the pose estimation keypoints
      */
-    async getEstimation (): Promise<posenet.Pose[]> {
-        const net = await getNet()
-        const video = await setupCamera()
+  async getEstimation (): Promise<posenet.Pose[]> {
+    const net = await getNet()
+    const video = await setupCamera()
 
-        const estimatePoses = await getEstimationStream(video, net)
-        console.log(estimatePoses)
-        return estimatePoses
-    }
+    const estimatePoses = await getEstimationStream(video, net)
+    console.log(estimatePoses)
+    return estimatePoses
+  }
 }
 </script>
