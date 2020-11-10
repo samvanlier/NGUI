@@ -1,16 +1,31 @@
 <template>
   <!--<router-view/>-->
   <div id="app">
-    <h2 class="center">Virtual Trainer</h2>
+    <h1>Squat exercise</h1>
+    <h2 class="space">Step 1. Watch Tutorial</h2>
+    <iframe class="border" width="640" height="360" src="https://www.youtube.com/embed/jGQ8_IMPQOY" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    <h2 class="space">Step 2. Perform exercise</h2>
     <div>
       <vue-web-cam v-bind:deviceId="deviceId" width="640" height="480"/>
     </div>
     <div>
-      <button id="snap" v-on:click="getEstimation()">Test</button>
+      <button id="start" v-on:click="">Start</button>
+      <button id="snap" v-on:click="getEstimation()">Snap</button>
+      <button id="stop" v-on:click="">Stop</button>
     </div>
-    <canvas ref="canvas" id="canvas" width="640" height="480"></canvas>
+    <h2 class="space">Step 3. Get Feedback</h2>
   </div>
 </template>
+
+<style>
+  .space {
+    margin-top: 5%;
+  }
+
+  .border {
+    border: black 5px solid;
+  }
+</style>
 
 <script>
   import * as posenet from '@tensorflow-models/posenet'
@@ -108,14 +123,6 @@
     text-align: center;
     color: #2c3e50;
     margin-top: 60px;
-  }
-
-  #video {
-    background-color: #000000;
-  }
-
-  #canvas {
-    display: none;
   }
 
   li {
