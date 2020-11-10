@@ -17,74 +17,86 @@
   import {WebCam} from 'vue-web-cam'
 
   export default {
-  name: 'app',
-  data () {
-    return {
-      deviceId: null
-    }
-  },
-  components: {
-    'vue-web-cam': WebCam
-  },
-  mounted () {
-    navigator.mediaDevices.enumerateDevices().then(devices => {
-      for (let i = 0; i < devices.length; i++) {
-        if (devices[i].kind === 'videoinput') {
-          this.deviceId = devices[i].deviceId
-        }
+    name: 'app',
+    data () {
+      return {
+        deviceId: null,
+        video: null,
+        net: null
       }
-    })
-
-    // zien wat hiermee te doen!
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-        console.log(stream)
-      })
-    }
-  },
-  methods: {
-    async getEstimation () {
-      const net = await this.getNet()
-      const video = await this.setupCamera()
-
-      const estimatePoses = await this.getEstimationStream(video, net)
-      console.log(estimatePoses)
-      return estimatePoses
     },
-    async setupCamera () {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('No camera available')
-      }
-
-      const video = document.getElementsByTagName('video')[0]
-
-      video.srcObject = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: true
-      })
-
-      return new Promise((resolve) => {
-        video.onloadedmetadata = () => {
-          resolve(video)
+    components: {
+      'vue-web-cam': WebCam
+    },
+    mounted () {
+      navigator.mediaDevices.enumerateDevices().then(devices => {
+        for (let i = 0; i < devices.length; i++) {
+          if (devices[i].kind === 'videoinput') {
+            this.deviceId = devices[i].deviceId
+          }
         }
       })
+
+      // zien wat hiermee te doen!
+      // gebruik als setup video?
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true, audio:false }).then(stream => {
+          console.log(stream)
+        })
+      }
     },
-    async getNet () {
-      return await posenet.load({
-        architecture: 'ResNet50',
-        outputStride: 32,
-        inputResolution: { width: 257, height: 200 },
-        quantBytes: 2
-      })
-    },
-    async getEstimationStream (video, net) {
-      return await net.estimatePoses(video, {
-        decodingMethod: 'single-person',
-        flipHorizontal: true // see https://github.com/tensorflow/tfjs-models/blob/708e3911fb01d0dfe70448acc3e8ca736fae82d3/posenet/demos/camera.js#L294
-      })
+    methods: {
+      //todo
+      async getEstimation () {        
+        if(this.net == null){
+          this.net = await this.getNet()
+        }
+        
+        if(this.video == null){
+          this.video = await this.setupCamera()
+        }
+
+
+
+        // get 1 estimation
+        const estimatePoses = await this.getEstimationStream(this.video, this.net)
+        console.log(estimatePoses)
+        return estimatePoses
+      },
+      async setupCamera () {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('No camera available')
+        }
+
+        let videoTag = document.getElementsByTagName('video')[0]
+
+        videoTag.srcObject = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: true
+        })
+
+        return new Promise((resolve) => {
+          videoTag.onloadedmetadata = () => {
+            resolve(videoTag)
+          }
+        })
+      },
+      async getNet () {
+        return await posenet.load({
+          architecture: 'ResNet50',
+          outputStride: 32,
+          inputResolution: { width: 257, height: 200 },
+          quantBytes: 2
+        })
+      },
+      async getEstimationStream (video, net) {
+        return await net.estimatePoses(video, {
+          decodingMethod: 'single-person',
+          flipHorizontal: true // see https://github.com/tensorflow/tfjs-models/blob/708e3911fb01d0dfe70448acc3e8ca736fae82d3/posenet/demos/camera.js#L294
+        })
+      }
     }
   }
-}
 </script>
 
 <style>
