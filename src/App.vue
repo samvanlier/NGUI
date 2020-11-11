@@ -42,7 +42,7 @@
   import * as tf from '@tensorflow/tfjs'
   import * as posenet from '@tensorflow-models/posenet'
   import {WebCam} from 'vue-web-cam'
-  import Util from './scripts/util'
+  import {drawBoundingBox, drawKeypoints, drawSkeleton, isMobile, toggleLoadingUI, tryResNetButtonName, tryResNetButtonText, updateTryResNetButtonDatGuiCss} from './scripts/util'
   import Stats from 'stats.js'
   import dat from 'dat.gui'
 
@@ -121,47 +121,128 @@
       detectPoseInRealTime(video, net) {
         const canvas = document.getElementById('output');
         const ctx = canvas.getContext('2d');
-        // since images are being fed from a webcam
-        const flipHorizontal = true;
+
+        // since images are being fed from a webcam, we want to feed in the
+        // original image and then just flip the keypoints' x coordinates. If instead
+        // we flip the image, then correcting left-right keypoint pairs requires a
+        // permutation on all the keypoints.
+        const flipPoseHorizontal = true;
+
         canvas.width = videoWidth;
         canvas.height = videoHeight;
+
         async function poseDetectionFrame() {
           if (guiState.changeToArchitecture) {
             // Important to purge variables and free up GPU memory
             guiState.net.dispose();
-            // Load the PoseNet model weights for either the 0.50, 0.75, 1.00, or 1.01
-            // version
-            guiState.net = await posenet.load(+guiState.changeToArchitecture);
+            toggleLoadingUI(true);
+            guiState.net = await posenet.load({
+              architecture: guiState.changeToArchitecture,
+              outputStride: guiState.outputStride,
+              inputResolution: guiState.inputResolution,
+              multiplier: guiState.multiplier,
+            });
+            toggleLoadingUI(false);
+            guiState.architecture = guiState.changeToArchitecture;
             guiState.changeToArchitecture = null;
           }
+
+          if (guiState.changeToMultiplier) {
+            guiState.net.dispose();
+            toggleLoadingUI(true);
+            guiState.net = await posenet.load({
+              architecture: guiState.architecture,
+              outputStride: guiState.outputStride,
+              inputResolution: guiState.inputResolution,
+              multiplier: +guiState.changeToMultiplier,
+              quantBytes: guiState.quantBytes
+            });
+            toggleLoadingUI(false);
+            guiState.multiplier = +guiState.changeToMultiplier;
+            guiState.changeToMultiplier = null;
+          }
+
+          if (guiState.changeToOutputStride) {
+            // Important to purge variables and free up GPU memory
+            guiState.net.dispose();
+            toggleLoadingUI(true);
+            guiState.net = await posenet.load({
+              architecture: guiState.architecture,
+              outputStride: +guiState.changeToOutputStride,
+              inputResolution: guiState.inputResolution,
+              multiplier: guiState.multiplier,
+              quantBytes: guiState.quantBytes
+            });
+            toggleLoadingUI(false);
+            guiState.outputStride = +guiState.changeToOutputStride;
+            guiState.changeToOutputStride = null;
+          }
+
+          if (guiState.changeToInputResolution) {
+            // Important to purge variables and free up GPU memory
+            guiState.net.dispose();
+            toggleLoadingUI(true);
+            guiState.net = await posenet.load({
+              architecture: guiState.architecture,
+              outputStride: guiState.outputStride,
+              inputResolution: +guiState.changeToInputResolution,
+              multiplier: guiState.multiplier,
+              quantBytes: guiState.quantBytes
+            });
+            toggleLoadingUI(false);
+            guiState.inputResolution = +guiState.changeToInputResolution;
+            guiState.changeToInputResolution = null;
+          }
+
+          if (guiState.changeToQuantBytes) {
+            // Important to purge variables and free up GPU memory
+            guiState.net.dispose();
+            toggleLoadingUI(true);
+            guiState.net = await posenet.load({
+              architecture: guiState.architecture,
+              outputStride: guiState.outputStride,
+              inputResolution: guiState.inputResolution,
+              multiplier: guiState.multiplier,
+              quantBytes: guiState.changeToQuantBytes
+            });
+            toggleLoadingUI(false);
+            guiState.quantBytes = guiState.changeToQuantBytes;
+            guiState.changeToQuantBytes = null;
+          }
+
           // Begin monitoring code for frames per second
           stats.begin();
-          // Scale an image down to a certain factor. Too large of an image will slow
-          // down the GPU
-          const imageScaleFactor = guiState.input.imageScaleFactor;
-          const outputStride = +guiState.input.outputStride;
+
           let poses = [];
           let minPoseConfidence;
           let minPartConfidence;
           switch (guiState.algorithm) {
             case 'single-pose':
-              const pose = await guiState.net.estimateSinglePose(
-                video, imageScaleFactor, flipHorizontal, outputStride);
-              poses.push(pose);
+              const pose = await guiState.net.estimatePoses(video, {
+                flipHorizontal: flipPoseHorizontal,
+                decodingMethod: 'single-person'
+              });
+              poses = poses.concat(pose);
               minPoseConfidence = +guiState.singlePoseDetection.minPoseConfidence;
               minPartConfidence = +guiState.singlePoseDetection.minPartConfidence;
               break;
             case 'multi-pose':
-              poses = await guiState.net.estimateMultiplePoses(
-                video, imageScaleFactor, flipHorizontal, outputStride,
-                guiState.multiPoseDetection.maxPoseDetections,
-                guiState.multiPoseDetection.minPartConfidence,
-                guiState.multiPoseDetection.nmsRadius);
+              let all_poses = await guiState.net.estimatePoses(video, {
+                flipHorizontal: flipPoseHorizontal,
+                decodingMethod: 'multi-person',
+                maxDetections: guiState.multiPoseDetection.maxPoseDetections,
+                scoreThreshold: guiState.multiPoseDetection.minPartConfidence,
+                nmsRadius: guiState.multiPoseDetection.nmsRadius
+              });
+
+              poses = poses.concat(all_poses);
               minPoseConfidence = +guiState.multiPoseDetection.minPoseConfidence;
               minPartConfidence = +guiState.multiPoseDetection.minPartConfidence;
               break;
           }
+
           ctx.clearRect(0, 0, videoWidth, videoHeight);
+
           if (guiState.output.showVideo) {
             ctx.save();
             ctx.scale(-1, 1);
@@ -169,30 +250,32 @@
             ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
             ctx.restore();
           }
+
           // For each pose (i.e. person) detected in an image, loop through the poses
           // and draw the resulting skeleton and keypoints if over certain confidence
           // scores
-
-          //TODO: write hook for AI!
-          poses.forEach(({
-            score,
-            keypoints
-          }) => {
+          poses.forEach(({score, keypoints}) => {
             if (score >= minPoseConfidence) {
-            
+              //TODO hook to AI!
               console.log(JSON.stringify(keypoints), minPartConfidence, ctx)
               if (guiState.output.showPoints) {
-                Util.drawKeypoints(keypoints, minPartConfidence, ctx);
+                drawKeypoints(keypoints, minPartConfidence, ctx);
               }
               if (guiState.output.showSkeleton) {
-                Util.drawSkeleton(keypoints, minPartConfidence, ctx);
+                drawSkeleton(keypoints, minPartConfidence, ctx);
+              }
+              if (guiState.output.showBoundingBox) {
+                drawBoundingBox(keypoints, ctx);
               }
             }
           });
+
           // End monitoring code for frames per second
           stats.end();
+
           requestAnimationFrame(poseDetectionFrame);
         }
+
         poseDetectionFrame();
       },
       async setupCamera() {
@@ -423,7 +506,7 @@
         this.setupGui([], net);
         this.setupFPS();
         this.detectPoseInRealTime(video, net);
-        Util.drawSkeleton(points, confidence, ctx);
+        // drawSkeleton(points, confidence, ctx);
       },
       isAndroid() {
         return /Android/i.test(navigator.userAgent);
