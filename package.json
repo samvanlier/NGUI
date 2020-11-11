@@ -15,6 +15,8 @@
     "@types/dat.gui": "^0.7.5",
     "@types/stats.js": "^0.17.0",
     "core-js": "^3.6.5",
+    "dat.gui": "^0.7.7",
+    "stats.js": "^0.17.0",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
     "vue-web-cam": "^1.9.0",
