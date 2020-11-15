@@ -20,6 +20,7 @@
               display: none;">
         </video>
         <canvas id="output"/>
+        <textarea id="feedback" style="margin-left: 2%" name="feedback" rows="40" cols="60" readonly></textarea>
       </div>
       <!--TODO: start en stop implementatie
       <button @click="startLoop(true)">Start</button>
@@ -113,7 +114,6 @@
       async startLoop(tracking) {
         //start camera
         const video = await this.startCamera()
-
         // Load posenet model
         const net = await posenet.load(config.resNetConfig);
         //start detection
@@ -128,8 +128,9 @@
 
         //per numberOfFrames we check if a given percentage is in a wrong position
         //if this is the case we print feedback and reset
+        //TODO: tweak this
         const numberOfFrames = 100;
-        const percentage = 25/100
+        const percentage = 0.50
         const nrOfOccurances = numberOfFrames * percentage
 
         //checks occurances
@@ -166,7 +167,7 @@
           });
           poses = poses.concat(pose);
           minPoseConfidence = +0.1;
-          minPartConfidence = +0.5;
+          minPartConfidence = +0.7;
 
           //show camera
           ctx.clearRect(0, 0, videoWidth, videoHeight);
@@ -189,172 +190,176 @@
                 function horizontalPose(leftShoulder, rightShoulder, leftHip, rightHip) {
                   // leftHip and rightHip (horizontal)
                   function horizontalHips() {
-                    const angle = Math.atan((rightHip.y - leftHip.y) / (rightHip.x - leftHip.x)) * 180 / Math.PI
+                    const angle = Math.atan((rightHip.position.y - leftHip.position.y) / (rightHip.position.x - leftHip.position.x)) * 180 / Math.PI
                     const threshold = 5
 
-                    if (Math.abs(angle) > threshold) {
-                      horizontalPose1++
-                    }
+                    if (leftHip.score > minPartConfidence && rightHip.score > minPartConfidence)
+                      if (Math.abs(angle) > threshold)
+                        horizontalPose1++
                   }
 
-                  // leftShoulder and rightShoulder (horizontal)
-                  function horizontalShoulders() {
-                    const angle = Math.atan((rightShoulder.y - leftShoulder.y) / (rightShoulder.x - leftShoulder.x)) * 180 / Math.PI
-                    const threshold = 5
+                    // leftShoulder and rightShoulder (horizontal)
+                    function horizontalShoulders() {
+                      const angle = Math.atan((rightShoulder.position.y - leftShoulder.position.y) / (rightShoulder.position.x - leftShoulder.position.x)) * 180 / Math.PI
+                      const threshold = 5
 
-                    if (Math.abs(angle) > threshold) {
-                      horizontalPose2++
+                      if (leftShoulder.score > minPartConfidence && rightShoulder.score > minPartConfidence)
+                        if (Math.abs(angle) > threshold)
+                          horizontalPose2++
                     }
+
+                    horizontalHips()
+                    horizontalShoulders()
                   }
 
-                  horizontalHips()
-                  horizontalShoulders()
+                  //feet shoulder width apart
+                  function neutralPosition(leftShoulder, rightShoulder, leftAnkle, rightAnkle) {
+                    // leftShoulder and leftAnkle (vertical - angle of 95-85)
+                    function leftSide() {
+                      const angle = Math.atan((leftAnkle.position.y - leftShoulder.position.y) / (leftAnkle.position.x - leftShoulder.position.x)) * 180 / Math.PI
+
+                      if (leftAnkle.score > minPartConfidence && leftShoulder.score > minPartConfidence)
+                        if (Math.abs(angle) > 90 || Math.abs(angle) < 88)
+                          neutralPosition1++
+                    }
+
+                    // rightShoulder and rightFoot (vertical - angle of 95-85)
+                    function rightSide() {
+                      const angle = Math.atan((rightShoulder.position.y - rightAnkle.position.y) / (rightShoulder.position.x - rightAnkle.position.x)) * 180 / Math.PI
+
+                      if (rightShoulder.score > minPartConfidence && rightAnkle.score > minPartConfidence)
+                        if (angle < 0 && angle > -88)
+                          neutralPosition2++
+                    }
+
+                    leftSide()
+                    rightSide()
+                  }
+
+                  //between -87 and 87?
+                  function kneeAnkleAlignment(leftKnee, rightKnee, leftAnkle, rightAnkle) {
+                    // leftKnee and leftAnkle (vertical)
+                    function leftSide() {
+                      const angle = Math.atan((leftAnkle.position.y - leftKnee.position.y) / (leftAnkle.position.x - leftKnee.position.x)) * 180 / Math.PI
+
+                      if (leftAnkle.score > minPartConfidence && leftKnee.score > minPartConfidence)
+                        if (angle < 0 && angle > -85 || angle > 0 && angle < 85) {
+                          kneeAnkleAlignment1++
+                      }
+                    }
+
+                    // rightKnee and rightFoot (vertical)
+                    function rightSide() {
+                      const angle = Math.atan((rightKnee.position.y - rightAnkle.position.y) / (rightKnee.position.x - rightAnkle.position.x)) * 180 / Math.PI
+
+                      if (rightKnee.score > minPartConfidence && rightAnkle.score > minPartConfidence)
+                        if (angle < 0 && angle > -85 || angle > 0 && angle < 85)
+                          kneeAnkleAlignment2++
+                    }
+
+                    leftSide()
+                    rightSide()
+                  }
+
+                  //checks if squat is too low
+                  function hipHeight(leftKnee, rightKnee, leftHip, rightHip) {
+                    const hipX = (leftHip.position.x + rightHip.position.x) / 2
+                    const hipY = (leftHip.position.y + rightHip.position.y) / 2
+                    const kneeX = (leftKnee.position.x + rightKnee.position.x) / 2
+                    const kneeY = (leftKnee.position.y + rightKnee.position.y) / 2
+
+                    const distance = Math.sqrt(Math.pow(kneeX - hipX, 2) + Math.pow(kneeY - hipY, 2))
+
+                    if (leftKnee.score > minPartConfidence && leftKnee.score > minPartConfidence && leftHip.score > minPartConfidence && rightHip.score > minPartConfidence)
+                      if (distance < 20)
+                        hipHeightToLow++
+                  }
+
+                  function checkErrors() {
+                    var feedback = ""
+                    if (horizontalPose1 === nrOfOccurances) {
+                      feedback += "Hips are not parallel to the floor!\n"
+                      horizontalPose1 = 0
+                    }
+
+                    if (horizontalPose2 === nrOfOccurances) {
+                      feedback += "Shoulders are not parallel to the floor!\n"
+                      horizontalPose2 = 0
+                    }
+
+                    if (neutralPosition1 === nrOfOccurances) {
+                      feedback += "Left ankle not in the correct position!\n"
+                      neutralPosition1 = 0
+                    }
+                    if (neutralPosition2 === nrOfOccurances) {
+                      feedback += "Right ankle not in the correct position!\n"
+                      neutralPosition2 = 0
+                    }
+                    if (kneeAnkleAlignment1 === nrOfOccurances) {
+                      feedback += "Left knee ankle alignment is wrong!\n"
+                      kneeAnkleAlignment1 = 0
+                    }
+                    if (kneeAnkleAlignment2 === nrOfOccurances) {
+                      feedback +=  "Right knee ankle alignment is wrong!\n"
+                      kneeAnkleAlignment2 = 0
+                    }
+                    if (hipHeightToLow === nrOfOccurances) {
+                      feedback +=  "You squat is too low!\n"
+                      hipHeightToLow = 0
+                    }
+
+                    var feedbackText = document.getElementById('feedback').textContent
+                    document.getElementById('feedback').textContent = feedbackText + feedback
+                  }
+
+                  // HEURISTICS
+                  neutralPosition(keypoints[Keypoints.leftShoulder],
+                    keypoints[Keypoints.rightShoulder],
+                    keypoints[Keypoints.leftAnkle],
+                    keypoints[Keypoints.rightAnkle])
+
+                  horizontalPose(keypoints[Keypoints.leftShoulder],
+                    keypoints[Keypoints.rightShoulder],
+                    keypoints[Keypoints.leftHip],
+                    keypoints[Keypoints.rightHip])
+
+                  kneeAnkleAlignment(keypoints[Keypoints.leftKnee],
+                    keypoints[Keypoints.rightKnee],
+                    keypoints[Keypoints.leftAnkle],
+                    keypoints[Keypoints.rightAnkle])
+
+                  hipHeight(keypoints[Keypoints.leftKnee],
+                    keypoints[Keypoints.rightKnee],
+                    keypoints[Keypoints.leftHip],
+                    keypoints[Keypoints.rightHip])
+
+                  checkErrors()
+
+                  //END AI STUFF
                 }
 
-                //feet shoulder width apart
-                function neutralPosition(leftShoulder, rightShoulder, leftAnkle, rightAnkle) {
-                  // leftShoulder and leftAnkle (vertical - angle of 95-85)
-                  function leftSide() {
-                    const angle = Math.atan((leftAnkle.y - leftShoulder.y) / (leftAnkle.x - leftShoulder.x)) * 180 / Math.PI
-
-                    if (Math.abs(angle) > 90 || Math.abs(angle) < 88) {
-                      neutralPosition1++
-                    }
-                  }
-
-                  // rightShoulder and rightFoot (vertical - angle of 95-85)
-                  function rightSide() {
-                    const angle = Math.atan((rightShoulder.y - rightAnkle.y) / (rightShoulder.x - rightAnkle.x)) * 180 / Math.PI
-
-                    if (angle < 0 && angle > -88) {
-                      neutralPosition2++
-                    }
-                  }
-
-                  leftSide()
-                  rightSide()
+                if (frames % numberOfFrames === 0) {
+                  horizontalPose1 = 0;
+                  horizontalPose2 = 0;
+                  neutralPosition1 = 0;
+                  neutralPosition2 = 0;
+                  kneeAnkleAlignment1 = 0;
+                  kneeAnkleAlignment2 = 0;
                 }
 
-                //between -87 and 87?
-                function kneeAnkleAlignment(leftKnee, rightKnee, leftAnkle, rightAnkle) {
-                  // leftKnee and leftAnkle (vertical)
-                  function leftSide() {
-                    const angle = Math.atan((leftAnkle.y - leftKnee.y) / (leftAnkle.x - leftKnee.x)) * 180 / Math.PI
+                checkHeuristics(keypoints, minPartConfidence,
+                  [horizontalPose1,
+                    horizontalPose2,
+                    neutralPosition1,
+                    neutralPosition2,
+                    kneeAnkleAlignment1,
+                    kneeAnkleAlignment2]);
 
-                    if (angle < 0 && angle > -87 || angle > 0 && angle < 87) {
-                      kneeAnkleAlignment1++
-                      //console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++: " + angle)
-                    }
-                  }
-
-                  // rightKnee and rightFoot (vertical)
-                  function rightSide() {
-                    const angle = Math.atan((rightKnee.y - rightAnkle.y) / (rightKnee.x - rightAnkle.x)) * 180 / Math.PI
-
-                    if (angle < 0 && angle > -87 || angle > 0 && angle < 87) {
-                      kneeAnkleAlignment2++
-                      //console.log("++++: " + angle)
-                    }
-                  }
-
-                  leftSide()
-                  rightSide()
-                }
-
-                //checks if squat is too low
-                function hipHeight(leftKnee, rightKnee,leftHip, rightHip){
-                  const hipX = (leftHip.x + rightHip.x) / 2
-                  const hipY = (leftHip.y + rightHip.y) / 2
-                  const kneeX = (leftKnee.x + rightKnee.x) / 2
-                  const kneeY = (leftKnee.y + rightKnee.y) / 2
-
-                  const distance = Math.sqrt(Math.pow(kneeX - hipX,2) + Math.pow(kneeY - hipY,2))
-                  if (distance < 20){
-                    //console.log("TEST HIP TO LOW: "+distance)
-                    hipHeightToLow++
-                  }
-                }
-
-                function checkErrors() {
-                  if (horizontalPose1 === nrOfOccurances) {
-                    console.log("Hips are not parallel to the floor:")
-                    horizontalPose1 = 0
-                  }
-
-                  if (horizontalPose2 === nrOfOccurances) {
-                    console.log("Shoulders are not parallel to the floor")
-                    horizontalPose2 = 0
-                  }
-
-                  if (neutralPosition1 === nrOfOccurances) {
-                    console.log("Left ankle not in the correct position:")
-                    neutralPosition1 = 0
-                  }
-                  if (neutralPosition2 === nrOfOccurances) {
-                    console.log("Right ankle not in the correct position:")
-                    neutralPosition2 = 0
-                  }
-                  if (kneeAnkleAlignment1 === nrOfOccurances) {
-                    console.log("Left knee ankle alignment is wrong:")
-                    kneeAnkleAlignment1 = 0
-                  }
-                  if (kneeAnkleAlignment2 === nrOfOccurances) {
-                    console.log("Right knee ankle alignment is wrong:")
-                    kneeAnkleAlignment2 = 0
-                  }
-                  if (hipHeightToLow === nrOfOccurances){
-                    console.log("You squat is too low!")
-                    hipHeightToLow = 0
-                  }
-                }
-
-                // HEURISTICS
-                neutralPosition(keypoints[Keypoints.leftShoulder].position,
-                  keypoints[Keypoints.rightShoulder].position,
-                  keypoints[Keypoints.leftAnkle].position,
-                  keypoints[Keypoints.rightAnkle].position)
-
-                horizontalPose(keypoints[Keypoints.leftShoulder].position,
-                  keypoints[Keypoints.rightShoulder].position,
-                  keypoints[Keypoints.leftHip].position,
-                  keypoints[Keypoints.rightHip].position)
-
-                kneeAnkleAlignment(keypoints[Keypoints.leftKnee].position,
-                  keypoints[Keypoints.rightKnee].position,
-                  keypoints[Keypoints.leftAnkle].position,
-                  keypoints[Keypoints.rightAnkle].position)
-
-                hipHeight(keypoints[Keypoints.leftKnee].position,
-                  keypoints[Keypoints.rightKnee].position,
-                  keypoints[Keypoints.leftHip].position,
-                  keypoints[Keypoints.rightHip].position)
-
-                checkErrors()
-
-                //END AI STUFF
+                drawKeypoints(keypoints, minPartConfidence, ctx);
+                drawSkeleton(keypoints, minPartConfidence, ctx);
               }
-
-              if (frames % numberOfFrames === 0) {
-                horizontalPose1 = 0;
-                horizontalPose2 = 0;
-                neutralPosition1 = 0;
-                neutralPosition2 = 0;
-                kneeAnkleAlignment1 = 0;
-                kneeAnkleAlignment2 = 0;
-              }
-
-              checkHeuristics(keypoints,
-                [horizontalPose1,
-                  horizontalPose2,
-                  neutralPosition1,
-                  neutralPosition2,
-                  kneeAnkleAlignment1,
-                  kneeAnkleAlignment2]);
-
-              drawKeypoints(keypoints, minPartConfidence, ctx);
-              drawSkeleton(keypoints, minPartConfidence, ctx);
             }
-          });
+          );
 
           // End monitoring code for frames per second
           stats.end();
@@ -364,10 +369,7 @@
           });
         }
 
-        //wacht 3 seconden
-        await new Promise(r => setTimeout(r, 2000)).then(() => {
-          poseDetectionFrame(tracking)
-        })
+        poseDetectionFrame(tracking)
 
       },
       async setupCamera() {
