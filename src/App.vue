@@ -3,7 +3,7 @@
   <div id="app">
     <h1>Squat exercise</h1>
     <h2 class="space">Step 1. Watch Tutorial</h2>
-    <!--TODO:<iframe class="border" width="640" height="360" src="https://www.youtube.com/embed/jGQ8_IMPQOY"></iframe>-->
+    <iframe class="border" width="640" height="360" src="https://www.youtube.com/embed/jGQ8_IMPQOY"></iframe>
     <h2 class="space">Step 2. Perform exercise</h2>
     <div>
       <div id="info" style='display:none'>
@@ -123,11 +123,14 @@
         const canvas = document.getElementById('output');
         const ctx = canvas.getContext('2d');
 
-        //TODO: use stats for this (easy fast method for now)
+        //TODO: use stats for this? (easy fast method for now)
         let frames = 0;
-        const numberOfFrames = 100; //TODO: tweak
-        //how many occurances trigger an event (console.log)
-        const nrOfOccurances = numberOfFrames *0.25 // 25%
+
+        //per numberOfFrames we check if a given percentage is in a wrong position
+        //if this is the case we print feedback and reset
+        const numberOfFrames = 100;
+        const percentage = 25/100
+        const nrOfOccurances = numberOfFrames * percentage
 
         //checks occurances
         var horizontalPose1 = 0;
@@ -162,7 +165,7 @@
             decodingMethod: 'single-person'
           });
           poses = poses.concat(pose);
-          minPoseConfidence = +0.1; //TODO: bespreek dit?
+          minPoseConfidence = +0.1;
           minPartConfidence = +0.5;
 
           //show camera
@@ -180,8 +183,6 @@
           poses.forEach(({score, keypoints}) => {
             if (score >= minPoseConfidence && tracking) {
 
-              //TODO hook to AI!
-              //console.log(JSON.stringify(keypoints), minPartConfidence, ctx)
               function checkHeuristics(keypoints) {
 
                 //horizontal straight pose
@@ -260,7 +261,7 @@
                   rightSide()
                 }
 
-                //TODO: check squat is not to low
+                //checks if squat is too low
                 function hipHeight(leftKnee, rightKnee,leftHip, rightHip){
                   const hipX = (leftHip.x + rightHip.x) / 2
                   const hipY = (leftHip.y + rightHip.y) / 2
