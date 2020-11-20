@@ -21,6 +21,10 @@ function showCamera(ctx, video, videoWidth, videoHeight){
     ctx.restore();
 }
 
+/**
+ * Create a new clean userPose-object
+ * @returns a new userPose object
+ */
 function resetUserPose(){
     return {
         horizontalHips: 0,
@@ -33,6 +37,10 @@ function resetUserPose(){
     };
 }
 
+/**
+ * Gives the feedback to the user
+ * @param {*} fb A feedback collection
+ */
 function giveFeedback(fb){
     function toString(){
         let text = [];
@@ -82,6 +90,16 @@ function giveFeedback(fb){
     }
 }
 
+/**
+ * Do the detection of the user's position and provide feedback
+ * @param {*} video The video feed of the camera used
+ * @param {*} net A poseNet object that contains the computer vision elements
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {Number} videoWidth The width of the video
+ * @param {Number} videoHeight The height of the video
+ * @param {*} stats 
+ * @param {boolean} tracking A boolean indication if tracking has to be done
+ */
 export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight, stats, tracking = true){
     //TODO: use stats for this? (easy fast method for now)
     let frames = 0;
@@ -148,11 +166,6 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
         requestAnimationFrame(function () {
             poseDetectionFrame(tracking)
         });
-
-        //todo test function
-        // window.requestAnimationFrame(function () {
-        //     poseDetectionFrame(tracking)
-        // });
     }
 
     poseDetectionFrame(tracking);

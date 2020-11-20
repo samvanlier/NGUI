@@ -129,7 +129,6 @@
         canvas.height = videoHeight;
 
         await detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight, stats, tracking)
-
       },
       async setupCamera() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
