@@ -65,14 +65,21 @@ function giveFeedback(fb){
             text.push(fb.hipHeightToLow);
         }
 
-        return text.join("!\n");
+        text = text.filter(x => x != null);
+        if (text.length > 0){
+            return text.join("!\n");
+        }
+        return "";
     }
 
     let ta = document.getElementById('feedback');
     let prev = ta.textContent;
+    let current = toString();
 
-    ta.textContent = prev + "\n"
-                    + toString();
+    if(current != null && current !== ""){
+        ta.textContent = prev + "\n"
+                    + current;
+    }
 }
 
 export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight, stats, tracking = true){

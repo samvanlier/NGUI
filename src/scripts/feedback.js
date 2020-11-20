@@ -5,31 +5,31 @@
  * @returns {*} a user pose
  */
 function resetPose(userPose, feedback){
-    if(feedback.horizontalHips != null || feedback.horizontalHips !== ""){
+    if(feedback.horizontalHips != null && feedback.horizontalHips !== ""){
         userPose.horizontalHips = 0
     }
 
-    if(feedback.horizontalShoulders != null || feedback.horizontalShoulders !== ""){
+    if(feedback.horizontalShoulders != null && feedback.horizontalShoulders !== ""){
         userPose.horizontalShoulders = 0
     }
 
-    if(feedback.neutralPositionLeft != null || feedback.neutralPositionLeft !== ""){
+    if(feedback.neutralPositionLeft != null && feedback.neutralPositionLeft !== ""){
         userPose.neutralPositionLeft = 0
     }
 
-    if(feedback.neutralPositionRight != null || feedback.neutralPositionRight !== ""){
+    if(feedback.neutralPositionRight != null && feedback.neutralPositionRight !== ""){
         userPose.neutralPositionRight = 0
     }
 
-    if(feedback.kneeAnkleAlignmentLeft != null || feedback.kneeAnkleAlignmentLeft !== ""){
+    if(feedback.kneeAnkleAlignmentLeft != null && feedback.kneeAnkleAlignmentLeft !== ""){
         userPose.kneeAnkleAlignmentLeft = 0
     }
 
-    if(feedback.kneeAnkleAlignmentRight != null || feedback.kneeAnkleAlignmentRight !== ""){
+    if(feedback.kneeAnkleAlignmentRight != null && feedback.kneeAnkleAlignmentRight !== ""){
         userPose.kneeAnkleAlignmentRight = 0
     }
 
-    if(feedback.hipHeightToLow != null || feedback.hipHeightToLow !== ""){
+    if(feedback.hipHeightToLow != null && feedback.hipHeightToLow !== ""){
         userPose.hipHeightToLow = 0
     }
     
