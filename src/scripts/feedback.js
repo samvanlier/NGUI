@@ -51,6 +51,16 @@ function feedback(pose, nrOfOccurances, text){
     return null;
 }
 
+function containsFeedback(feedback){
+    return (feedback.horizontalHips != null && feedback.horizontalHips !== "")
+        || (feedback.horizontalShoulders != null && feedback.horizontalShoulders !== "")
+        || (feedback.neutralPositionLeft != null && feedback.neutralPositionLeft !== "")
+        || (feedback.neutralPositionRight != null && feedback.neutralPositionRight !== "")
+        || (feedback.kneeAnkleAlignmentLeft != null && feedback.kneeAnkleAlignmentLeft !== "")
+        || (feedback.kneeAnkleAlignmentRight != null && feedback.kneeAnkleAlignmentRight !== "")
+        || (feedback.hipHeightToLow != null && feedback.hipHeightToLow !== "")
+}
+
 const hh = "Hips are not parallel to the floor"; // horizontal hips
 const hs = "Shoulders are not parallel to the floor"; // horizontal shoulders
 const npl = "Left ankle not in the correct position"; // neutral position left
@@ -77,9 +87,10 @@ export function createFeedback(userPose, nrOfOccurrences){
     };
 
     let pose = resetPose(userPose, result);
-
+    
     return {
         userPose: pose,
-        result: result
+        result: result,
+        hasFeedback: containsFeedback(result)
     }
 }

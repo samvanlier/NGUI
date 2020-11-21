@@ -1,9 +1,8 @@
 import * as posenet from '@tensorflow-models/posenet';
 import {drawKeypoints, drawSkeleton} from './util';
 import Stats from 'stats.js';
-import { checkHeuristics } from './heuristics';
+import { checkHeuristics, Keypoints } from './heuristics';
 import { createFeedback } from './feedback';
-
 
 /**
  * Render the video feed in a 2D canvas
@@ -90,6 +89,102 @@ function giveFeedback(fb){
     }
 }
 
+function getIndex(points, part1, part2){
+    let i = -1;
+
+    for (let j = 0; j < points.length; j++) {
+        if ( i < 0 && i !== j){
+            const arr = points[j];
+        
+            if (arr[0].part === part1 && arr[1].part === part2
+                || arr[0].part === part2 && arr[1].part === part1 ){
+                i = j;
+            }
+        }
+    }
+    return i;
+}
+
+function createColors(keypoints, minPartConfidence, feedback, hasFeedback){
+    let good = "green";
+    let bad = "red";
+    let adKeypoints = posenet.getAdjacentKeyPoints(keypoints, minPartConfidence);
+    let kpColors = keypoints.map(_ => good);
+    let adKpColors = adKeypoints.map(_ => good)
+
+    if (!hasFeedback){
+        return {
+            kpColors: kpColors,
+            adKpColors: adKpColors
+        }
+    }
+
+    if(feedback.horizontalHips != null && feedback.horizontalHip !== ""){
+        kpColors[Keypoints.leftHip] = bad;
+        kpColors[Keypoints.rightHip] = bad;
+
+        let i = getIndex(adKeypoints, "leftHip", "rightHip");
+        adKpColors[i] = bad;
+    }
+
+    if(feedback.horizontalShoulders != null && feedback.horizontalShoulders !== ""){
+        kpColors[Keypoints.leftShoulder] = bad;
+        kpColors[Keypoints.rightShoulder] = bad;
+
+        let i = getIndex(adKeypoints, "leftShoulder", "rightShoulder");
+        adKpColors[i] = bad;
+    }
+
+    if (feedback.neutralPositionLeft != null && feedback.neutralPositionLeft !== ""){
+        kpColors[Keypoints.leftAnkle] = bad;
+        kpColors[Keypoints.leftShoulder] = bad;
+
+        let i = getIndex(adKeypoints, "leftAnkle", "rightAnkle");
+        adKpColors[i] = bad;
+    }
+
+    if (feedback.neutralPositionRight != null && feedback.neutralPositionRight !== ""){
+        kpColors[Keypoints.rightAnkle] = bad;
+        kpColors[Keypoints.rightShoulder] = bad;
+
+        let i = getIndex(adKeypoints, "rightAnkle", "rightShoulder");
+        adKpColors[i] = bad;
+    }
+
+    if (feedback.kneeAnkleAlignmentLeft != null && feedback.kneeAnkleAlignmentLeft !== ""){
+        kpColors[Keypoints.leftKnee] = bad;
+        kpColors[Keypoints.leftAnkle] = bad;
+
+        let i = getIndex(adKeypoints, "leftKnee", "leftAnkle");
+        adKpColors[i] = bad;
+    }
+    
+    if (feedback.kneeAnkleAlignmentRight != null && feedback.kneeAnkleAlignmentRight !== ""){
+        kpColors[Keypoints.rightKnee] = bad;
+        kpColors[Keypoints.rightAnkle] = bad;
+
+        let i = getIndex(adKeypoints, "rightKnee", "rightAnkle");
+        adKpColors[i] = bad;
+    }
+
+    if (feedback.hipHeightToLow != null && feedback.hipHeightToLow !== ""){
+        kpColors[Keypoints.leftKnee] = bad;
+        kpColors[Keypoints.rightKnee] = bad;
+        kpColors[Keypoints.leftHip] = bad;
+        kpColors[Keypoints.rightHip] = bad;
+
+        let i = getIndex(adKeypoints, "leftKnee", "leftHip");
+        adKpColors[i] = bad;
+        let j = getIndex(adKeypoints, "rightKnee", "rightHip");
+        adKpColors[j] = bad;
+    }
+
+    return {
+        kpColors: kpColors,
+        adKpColors: adKpColors
+    }
+}
+
 /**
  * Do the detection of the user's position and provide feedback
  * @param {*} video The video feed of the camera used
@@ -114,11 +209,12 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
     //check occurrences
     // todo rename poses
     let userPose = resetUserPose();
+    let keypointColors = new Array(17).fill("green");
+    let adjacentKeypointColors = new Array(12).fill("green");
 
     // since images are being fed from a webcam, we want to feed in the original image and then just flip the keypoints' x coordinates.
     // If instead we flip the image, then correcting left-right keypoint pairs requires a permutation on all the keypoints.
     const flipPoseHorizontal = true;
-
     async function poseDetectionFrame(tracking){
         stats.begin();
         frames++;
@@ -138,11 +234,12 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
         minPartConfidence = +0.7;
 
         showCamera(ctx, video, videoWidth, videoHeight);
-
         poses.forEach(({score, keypoints}) => {
             if(score >= minPoseConfidence && tracking){
                 if (frames % numberOfFrames === 0){
                     userPose = resetUserPose();
+                    keypointColors = new Array(17).fill("green");
+                    adjacentKeypointColors = new Array(12).fill("green");
                 }
 
                 userPose = checkHeuristics(keypoints, minPartConfidence, userPose);
@@ -150,12 +247,19 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
                 let temp = createFeedback(userPose, nrOfOccurrences);
                 userPose = temp.userPose;
                 let feedback = temp.result;
+                let hasFeedback = temp.hasFeedback;
                 
                 giveFeedback(feedback); // return feedback to user
+                if(hasFeedback){
+                    let c = createColors(keypoints, minPartConfidence, feedback, hasFeedback);
+                    keypointColors = c.kpColors;
+                    adjacentKeypointColors = c.adKpColors
+                }
+                                
 
                 // draw user
-                drawKeypoints(keypoints, minPartConfidence, ctx);
-                drawSkeleton(keypoints, minPartConfidence, ctx);
+                drawKeypoints(keypoints, minPartConfidence, ctx, keypointColors);
+                drawSkeleton(keypoints, minPartConfidence, ctx, adjacentKeypointColors);
             }
         });
 
