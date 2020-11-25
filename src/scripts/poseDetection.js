@@ -3,6 +3,7 @@ import {drawKeypoints, drawSkeleton} from './util';
 import Stats from 'stats.js';
 import { checkHeuristics, Keypoints } from './heuristics';
 import { createFeedback } from './feedback';
+import {speak} from './speech';
 
 /**
  * Render the video feed in a 2D canvas
@@ -86,6 +87,9 @@ function giveFeedback(fb){
     if(current != null && current !== ""){
         ta.textContent = prev + "\n"
                     + current;
+        
+        // voice test
+        speak(current);
     }
 }
 
