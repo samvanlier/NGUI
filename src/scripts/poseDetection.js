@@ -89,28 +89,41 @@ function giveFeedback(fb){
     }
 }
 
-function getIndex(points, part1, part2){
-    let i = -1;
-
-    for (let j = 0; j < points.length; j++) {
-        if ( i < 0 && i !== j){
-            const arr = points[j];
-        
-            if (arr[0].part === part1 && arr[1].part === part2
-                || arr[0].part === part2 && arr[1].part === part1 ){
-                i = j;
+/**
+ * 
+ * @param {*} keypoints Array of key points
+ * @param {*} minPartConfidence 
+ * @param {Object} feedback The feedback set
+ * @param {Boolean} hasFeedback If false then there is no feedback and all points and lines are green; otherwise points and line need to be colored
+ */
+function createColors(keypoints, minPartConfidence, feedback, hasFeedback){
+    /**
+     * Find the index in the Array of the adjacent points between the two parts
+     * @param {[Object]} points Array of adjacent points
+     * @param {String} part1 String name of a key point
+     * @param {String} part2 String name of a key point
+     */
+    function getIndex(points, part1, part2){
+        let i = -1;
+    
+        for (let j = 0; j < points.length; j++) {
+            if ( i < 0 && i !== j){
+                const arr = points[j];
+            
+                if (arr[0].part === part1 && arr[1].part === part2
+                    || arr[0].part === part2 && arr[1].part === part1 ){
+                    i = j;
+                }
             }
         }
+        return i;
     }
-    return i;
-}
 
-function createColors(keypoints, minPartConfidence, feedback, hasFeedback){
     let good = "green";
     let bad = "red";
     let adKeypoints = posenet.getAdjacentKeyPoints(keypoints, minPartConfidence);
     let kpColors = keypoints.map(_ => good);
-    let adKpColors = adKeypoints.map(_ => good)
+    let adKpColors = adKeypoints.map(_ => good);
 
     if (!hasFeedback){
         return {
@@ -209,6 +222,7 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
     //check occurrences
     // todo rename poses
     let userPose = resetUserPose();
+
     let keypointColors = new Array(17).fill("green");
     let adjacentKeypointColors = new Array(12).fill("green");
 
@@ -254,8 +268,7 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
                     let c = createColors(keypoints, minPartConfidence, feedback, hasFeedback);
                     keypointColors = c.kpColors;
                     adjacentKeypointColors = c.adKpColors
-                }
-                                
+                }              
 
                 // draw user
                 drawKeypoints(keypoints, minPartConfidence, ctx, keypointColors);
