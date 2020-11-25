@@ -52,13 +52,6 @@ export function drawSkeleton(keypoints, minConfidence, ctx, colors = [], scale =
   const adjacentKeyPoints =
       posenet.getAdjacentKeyPoints(keypoints, minConfidence);
 
-  // adjacentKeyPoints.forEach((keypoints) => {
-  //   const color = 'green';
-  //   drawSegment(
-  //       toTuple(keypoints[0].position), toTuple(keypoints[1].position), color,
-  //       scale, ctx);
-  // });
-
   for (let i = 0; i < adjacentKeyPoints.length; i++) {
     const keypoints = adjacentKeyPoints[i];
     const color = colors[i];
