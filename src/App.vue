@@ -28,6 +28,7 @@
     </div>
 
     <h2 class="space">Step 3. Get Feedback</h2>
+    <p id="speech"></p>
   </div>
 </template>
 
@@ -47,6 +48,7 @@
   import Stats from 'stats.js'
 
   import {detectPoseInRealTime} from './scripts/poseDetection';
+  import {startRecognition} from './scripts/speech';
 
   const factor = 200
   const videoWidth = 4 * factor
@@ -110,9 +112,32 @@
     },
     components: {},
     mounted() {
-      this.startLoop(true)
+      this.initRecognition();
+      this.startLoop(true); // comment if testing speech (it will help)
     },
     methods: {
+      initRecognition(){
+        let diagnostic = document.getElementById("speech"); // for testing
+
+        // callback function that extracts the text that we want
+        let onresult = function(event){
+          let i = event.results.length - 1;
+          let result = event.results[i][0];
+
+          let command = result.transcript; // the word/sentence
+          let confidence = result.confidence; // the confidence of the text version of the audio
+
+          diagnostic.textContent = 'Result recieved: ' + command + ' with confidence '+ confidence +'.'; // print shit on screen
+          console.log(event);
+        };
+        // callback fucntion for error handling
+        let onnomatch = function(error){
+          diagnostic.textContent = "I didn't recognize the command";
+          console.log(error);
+        };
+
+        startRecognition(onresult, onnomatch);
+      },
       async startLoop(tracking) {
         //start camera
         const video = await this.startCamera()
