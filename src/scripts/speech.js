@@ -35,7 +35,7 @@ recognition.interimResults = false; // set if intermediate results have to be re
 recognition.maxAlternatives = 1; // the number of alternative results that have to be returned
 
 /**
- * 
+ * Start the recognition of speech
  * @param {function(Object)} onresult A callback function to handle a result
  * @param {function(Object)} onnomatch A callback funtion to handle an error
  */
