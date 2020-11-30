@@ -37,7 +37,7 @@ recognition.maxAlternatives = 1; // the number of alternative results that have 
 /**
  * Start the recognition of speech
  * @param {function(Object)} onresult A callback function to handle a result
- * @param {function(Object)} onnomatch A callback funtion to handle an error
+ * @param {function(Object)} onnomatch A callback function to handle an error
  */
 export function startRecognition(onresult, onnomatch){
     recognition.start();
