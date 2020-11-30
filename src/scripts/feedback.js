@@ -39,12 +39,12 @@ function resetPose(userPose, feedback){
 /**
  * Checks if feedback has to be given
  * @param {Number} pose The number of violations
- * @param {Number} nrOfOccurances 
+ * @param {Number} nrOfOccurrences 
  * @param {String} text The text message that has to be given
  * @returns text if the feedback has to be given; otherwise it returns null
  */
-function feedback(pose, nrOfOccurances, text){
-    if(pose === nrOfOccurances){
+function feedback(pose, nrOfOccurrences, text){
+    if(pose === nrOfOccurrences){
         return text;
     }
     
