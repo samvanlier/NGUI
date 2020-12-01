@@ -3,7 +3,7 @@
   <div id="app">
     <h1>Squat exercise</h1>
     <h2 class="space">Step 1. Watch Tutorial</h2>
-    <iframe class="border" width="640" height="360" src="https://www.youtube.com/embed/jGQ8_IMPQOY"></iframe>
+    <!--<iframe class="border" width="640" height="360" src="https://www.youtube.com/embed/jGQ8_IMPQOY"></iframe>-->
     <h2 class="space">Step 2. Perform exercise</h2>
     <div>
       <div id="info" style='display:none'>
@@ -54,26 +54,6 @@
   const videoWidth = 4 * factor
   const videoHeight = 3 * factor
   const stats = new Stats()
-
-  const Keypoints = {
-    nose: 0,
-    leftEye: 1,
-    rightEye: 2,
-    leftEar: 3,
-    rightEar: 4,
-    leftShoulder: 5,
-    rightShoulder: 6,
-    leftElbow: 7,
-    rightElbow: 8,
-    leftWrist: 9,
-    rightWrist: 10,
-    leftHip: 11,
-    rightHip: 12,
-    leftKnee: 13,
-    rightKnee: 14,
-    leftAnkle: 15,
-    rightAnkle: 16
-  };
 
   //ratios voor input
   const resNetFactorH = 0.5
