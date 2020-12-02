@@ -19,6 +19,8 @@ export function createFeedback(check, nrOfOccurrences){
         feedback = true
         check[i].occurances = 0
         check[i].text = ""
+      } else if (check[i].text !== null){
+        feedback = true
       }
     }
 

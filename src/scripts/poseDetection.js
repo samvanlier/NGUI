@@ -100,6 +100,7 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
   //if this is the case we print feedback and reset
   //TODO: tweak this
   const numberOfFrames = 100;
+  const colorRefreshRate = 50;
   const percentage = 0.75 //0.5
   const nrOfOccurrences = numberOfFrames * percentage
 
@@ -135,11 +136,6 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
     showCamera(ctx, video, videoWidth, videoHeight);
     poses.forEach(({score, keypoints}) => {
       if (score >= minPoseConfidence && tracking) {
-
-        if (frames % numberOfFrames === 0) {
-          keypointColors = new Array(17).fill("green");
-          adjacentKeypointColors = new Array(12).fill("green");
-        }
 
         var newCheck = checkHeuristics(keypoints, checks[checks.length - 1], minPartConfidence);
         let temp = createFeedback(newCheck, nrOfOccurrences);
