@@ -58,14 +58,42 @@ function angleBetween3Points(point1, pivot, point2) {
 }
 
 function useableKeypoints(kps, mpc) {
-  for (let i = 0; i< kps.length; i++) {
-    //console.log("p: "+JSON.stringify(kps[i]))
+  for (let i = 0; i < kps.length; i++) {
     if (kps[i] === null || kps[i].score < mpc) {
       return false
     }
   }
   return true
 }
+
+/*function getOrientedAngle(angle, orientation) {
+  var changedAngle = angle
+
+  switch (orientation) {
+    case "N":
+      // do nothing (right orientation)
+      break;
+    case "E":
+      changedAngle = angle + 90
+      break;
+    case "S":
+      changedAngle = angle + 180
+      break;
+    case "W":
+      changedAngle = angle - 90
+      break;
+  }
+
+  while (changedAngle > 90) {
+    changedAngle -= 90
+  }
+
+  while (changedAngle < -90) {
+    changedAngle += 90
+  }
+
+  return changedAngle
+}*/
 
 //===============================================BUILDING BLOCKS=====================================================
 
@@ -98,7 +126,10 @@ function distanceBetween2Lines(kps, point1, point2, point3, point4, distance, fe
     const d = Math.sqrt(Math.pow(bX - aX, 2) + Math.pow(bY - aY, 2));
 
     if (d < distance) {
-      return feedbackWrapper(feedback, [{id: point1, part: p1.part}, {id: point2, part: p2.part}, {id: point3, part: p3.part}, {id: point4, part: p4.part}]);
+      return feedbackWrapper(feedback, [{id: point1, part: p1.part}, {id: point2, part: p2.part}, {
+        id: point3,
+        part: p3.part
+      }, {id: point4, part: p4.part}]);
     }
   }
 
@@ -129,6 +160,7 @@ function horizontal(kps, point1, point2, threshold, feedback, mpc) {
   return feedbackWrapper("", [])
 }
 
+//TODO: fix this one!
 /**
  *
  * @param kps
@@ -145,11 +177,13 @@ function vertical(kps, point1, point2, threshold, feedback1, feedback2, mpc) {
   const p2 = kps[point2]
 
   if (useableKeypoints([p1, p2], mpc)) {
-    const angle = Math.atan((p1.position.y - p2.position.y) / (p1.position.x - p2.position.x)) * 180 / Math.PI;
+    const angle = Math.atan((p2.position.y - p1.position.y) / (p2.position.x - p1.position.x)) * 180 / Math.PI;
 
-    if (angle < 0 && (angle + 90 > 0 || angle + (90 - threshold) < 0)) {
+    if (angle < 0 && angle > -90 + threshold) {
+      //too much to the right (need to move left)
       return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
-    } else if (angle > 0 && (angle - 90 > 0 || angle - (90 - threshold) < 0)) {
+    } else if (angle > 0 && angle < 90 - threshold) {
+      //too much to the left (need to move right)
       return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
     }
   }
@@ -159,8 +193,8 @@ function vertical(kps, point1, point2, threshold, feedback1, feedback2, mpc) {
 /**
  *
  * @param kps
- * @param point1
- * @param point2
+ * @param point1: highest point
+ * @param point2: lowest point
  * @param angle1
  * @param angle2
  * @param feedback1
@@ -175,22 +209,35 @@ function verticalRange(kps, point1, point2, angle1, angle2, feedback1, feedback2
   if (useableKeypoints([p1, p2], mpc)) {
     const a = Math.atan((p1.position.y - p2.position.y) / (p1.position.x - p2.position.x)) * 180 / Math.PI;
 
-    var a1 = (90 - angle1)
-    var a2 = (90 - angle2)
+    // we hebben 4 mogelijkheden! (N, E, S, W)
+    let a1 = angle1
+    let a2 = angle2
 
-    if (p1.position.x < p2.position.x) { //verticale die van links naar rechts dalend is (2.)
-      if (a < 0 && (a < -a1 || a > -a2)) {
-        return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
-      } else if (a > 0 && (a < a1 || a > a2)) {
-        return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+    if (p1.position.y < p2.position.y) {
+      if (a1 < 0 && a2 > 0) { // - to +
+        if (a < 0 && a > a1) {
+          return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+        } else if (a > 0 && a < a2) {
+          return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+        }
+      } else if (a1 < 0 && a2 < 0) { // - to -
+        if (a > a1) {
+          return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+        } else if (a < a2) {
+          return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+        }
+      } else if (a1 > 0 && a2 > 0) { // + to +
+        if (a < a1) {
+          return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+        } else if (a > a2) {
+          return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+        }
       }
-    } else { //verticale die van rechts naar links dalend is (3.)
-      if (a < 0 && (a < -a1 || a > -a2)) {
-        return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
-      } else if (a > 0 && (a < a1 || a > a2)) {
-        return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
-      }
+    } else {
+      return feedbackWrapper("bad orientation", [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
     }
+
+
   }
   return feedbackWrapper("", [])
 }
@@ -320,23 +367,25 @@ function checkFrontSideSquat(keypoints, mpc) {
 
   // Check neutral pose
   // left side
-  feedbackArray.push(verticalRange(keypoints, Keypoints.leftAnkle, Keypoints.leftShoulder, -88, 90,
+  feedbackArray.push(verticalRange(keypoints, Keypoints.leftShoulder, Keypoints.leftAnkle, -85, 90,
     "Move your left foot more to the right",
     "Move your left foot more to the left", mpc))
 
   // right side
-  feedbackArray.push(verticalRange(keypoints, Keypoints.rightAnkle, Keypoints.rightShoulder, 88, 90,
+  feedbackArray.push(verticalRange(keypoints, Keypoints.rightShoulder, Keypoints.rightAnkle, 85, 90,
     "Move your right foot more to the right",
     "Move your right foot more to the left", mpc))
 
+  let KneeFootThreshold = 10
+
   // knee-ankle alignment
   // left side
-  feedbackArray.push(vertical(keypoints, Keypoints.leftKnee, Keypoints.leftAnkle, 5,
+  feedbackArray.push(vertical(keypoints, Keypoints.leftKnee, Keypoints.leftAnkle, KneeFootThreshold,
     "Move your left knee more to the right",
     "Move your left knee more to the left", mpc))
 
   // right side
-  feedbackArray.push(vertical(keypoints, Keypoints.rightKnee, Keypoints.rightAnkle, 5,
+  feedbackArray.push(vertical(keypoints, Keypoints.rightKnee, Keypoints.rightAnkle, KneeFootThreshold,
     "Move your right knee more to the right",
     "Move your right knee more to the left", mpc))
 

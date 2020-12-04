@@ -3,8 +3,8 @@
   <div id="app">
     <h1>Squat exercise</h1>
     <h2 class="space">Step 1. Watch Tutorial</h2>
-    <!--<iframe class="border" width="640" height="360" src="https://www.youtube.com/embed/jGQ8_IMPQOY"></iframe>-->
-    <h2 class="space">Step 2. Perform exercise</h2>
+    <iframe class="border" width="640" height="360" src="https://www.youtube.com/embed/jGQ8_IMPQOY"></iframe>
+    <h2 class="space">Step 2. Perform exercise and get feedback</h2>
     <div>
       <div id="info" style='display:none'>
       </div>
@@ -26,8 +26,6 @@
       <button @click="startLoop(true)">Start</button>
       <button @click="startLoop(false)">Stop</button>-->
     </div>
-
-    <h2 class="space">Step 3. Get Feedback</h2>
     <p id="speech"></p>
   </div>
 </template>
