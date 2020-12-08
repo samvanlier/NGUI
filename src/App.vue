@@ -84,12 +84,15 @@
   export default {
     name: 'app',
     data() {
-      return {}
+      return {
+        started: false
+      }
     },
     components: {},
     mounted() {
+      app.started = false;
       this.initRecognition();
-      this.startLoop(true); // comment if testing speech (it will help)
+      this.startLoop(); // comment if testing speech (it will help)
     },
     methods: {
       initRecognition() {
@@ -103,33 +106,33 @@
           let command = result.transcript; // the word/sentence
           let confidence = result.confidence; // the confidence of the text version of the audio
 
-          diagnostic.textContent = 'Result recieved: ' + command + ' with confidence ' + confidence + '.'; // print shit on screen
-          console.log(event);
-        };
-        // callback fucntion for error handling
-        let onnomatch = function (error) {
-          diagnostic.textContent = "I didn't recognize the command";
-          console.log(error);
+          if (command.includes("start")){
+            app.started = true;
+          }
+
+          if (command.includes("stop")){
+            app.started = false;
+          }
         };
 
-        startRecognition(onresult, onnomatch);
+        startRecognition(onresult);
       },
-      async startLoop(tracking) {
+      async startLoop() {
         //start camera
         const video = await this.startCamera()
         // Load posenet model
         const net = await posenet.load(config.resNetConfig);
         //start detection
-        await this.detectPoseIRT(video, net, tracking)
+        await this.detectPoseIRT(video, net)
       },
-      async detectPoseIRT(video, net, tracking) {
+      async detectPoseIRT(video, net) {
         const canvas = document.getElementById('output');
         const ctx = canvas.getContext('2d');
 
         canvas.width = videoWidth;
         canvas.height = videoHeight;
 
-        await detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight, stats, tracking)
+        await detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight, stats)
       },
       async setupCamera() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {

@@ -39,16 +39,22 @@ recognition.maxAlternatives = 1; // the number of alternative results that have 
  * @param {function(Object)} onresult A callback function to handle a result
  * @param {function(Object)} onnomatch A callback function to handle an error
  */
-export function startRecognition(onresult, onnomatch){
-    recognition.start();
+export function startRecognition(onresult){
+    
     recognition.onresult = onresult;
-    recognition.onnomatch = onnomatch;
-    //todo check if needed
-    // keep recognition alive?
+
     recognition.onspeechend = function(){
-        stopRecognition();
-        startRecognition(onresult, onnomatch);
+       recognition.start;
     }
+    recognition.onend = function(){
+            recognition.start;
+    }
+    recognition.onerror = function(error){
+        console.log(error);
+    }
+
+    recognition.start();
+
 }
 
 export function stopRecognition(){

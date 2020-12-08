@@ -91,9 +91,8 @@ function createColors(keypoints, check, hasFeedback, minPartConfidence) {
  * @param {Number} videoWidth The width of the video
  * @param {Number} videoHeight The height of the video
  * @param {*} stats
- * @param {boolean} tracking A boolean indication if tracking has to be done
  */
-export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight, stats, tracking = true) {
+export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight, stats) {
   let frames = 0;
 
   //per numberOfFrames we check if a given percentage is in a wrong position
@@ -115,9 +114,13 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
   // If instead we flip the image, then correcting left-right keypoint pairs requires a permutation on all the keypoints.
   const flipPoseHorizontal = true;
 
-  async function poseDetectionFrame(tracking) {
+  async function poseDetectionFrame() {
     stats.begin();
     frames++;
+
+    var tracking;
+    tracking = app.started;
+    console.log(tracking);
 
     let poses = [];
     let minPoseConfidence;
@@ -164,9 +167,9 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
     // is a function of the default js api
     // link to docs: https://developer.mozilla.org/nl/docs/Web/API/Window/requestAnimationFrame
     requestAnimationFrame(function () {
-      poseDetectionFrame(tracking)
+      poseDetectionFrame()
     });
   }
 
-  poseDetectionFrame(tracking);
+  poseDetectionFrame();
 }
