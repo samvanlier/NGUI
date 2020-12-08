@@ -44,12 +44,10 @@ export function giveFeedback(fb) {
   }
 
   let ta = document.getElementById('feedback');
-  let prev = ta.textContent;
   let current = toString();
 
   if (current != null && current !== "") {
-    ta.textContent = prev + "\n"
-      + current;
+    ta.textContent = current;
 
     // voice test
     speak(current);

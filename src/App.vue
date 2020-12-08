@@ -1,17 +1,17 @@
 <template>
   <!--<router-view/>-->
   <div id="app">
-    <h1>Squat exercise</h1>
-    <h2 class="space">Step 1. Watch Tutorial</h2>
+    <h1 style="font-size: 8em">Virtual trainer</h1>
+    <h2 class="space" style="font-size: 4em">Step 1. Watch Tutorial</h2>
     <iframe class="border" width="640" height="360" src="https://www.youtube.com/embed/jGQ8_IMPQOY"></iframe>
-    <h2 class="space">Step 2. Perform exercise and get feedback</h2>
+    <h2 class="space" style="font-size: 4em">Step 2. Perform exercise and get feedback</h2>
+    <p style="font-size: 2em">Your virtual trainer is listening: Say <span style="color: green">"<b>start</b>"</span> when you are ready to begin!</p>
     <div>
       <div id="info" style='display:none'>
       </div>
       <div id="loading">
         Loading the model...
       </div>
-
       <div id='main' style='display:none'>
         <video id="video" playsinline style=" -moz-transform: scaleX(-1);
               -o-transform: scaleX(-1);
@@ -19,12 +19,11 @@
               transform: scaleX(-1);
               display: none;">
         </video>
-        <canvas id="output"/>
-        <textarea id="feedback" style="margin-left: 2%" name="feedback" rows="40" cols="60" readonly></textarea>
+        <div>
+          <canvas id="output"/>
+          <p id="feedback" style="padding-bottom: 30px; font-size: 3em; color: #5f24ff"></p>
+        </div>
       </div>
-      <!--TODO: start en stop implementatie
-      <button @click="startLoop(true)">Start</button>
-      <button @click="startLoop(false)">Stop</button>-->
     </div>
     <p id="speech"></p>
   </div>
@@ -42,7 +41,6 @@
 
 <script>
   import * as posenet from '@tensorflow-models/posenet'
-  import {drawKeypoints, drawSkeleton} from './scripts/util'
   import Stats from 'stats.js'
 
   import {detectPoseInRealTime} from './scripts/poseDetection';
@@ -94,22 +92,22 @@
       this.startLoop(true); // comment if testing speech (it will help)
     },
     methods: {
-      initRecognition(){
+      initRecognition() {
         let diagnostic = document.getElementById("speech"); // for testing
 
         // callback function that extracts the text that we want
-        let onresult = function(event){
+        let onresult = function (event) {
           let i = event.results.length - 1;
           let result = event.results[i][0];
 
           let command = result.transcript; // the word/sentence
           let confidence = result.confidence; // the confidence of the text version of the audio
 
-          diagnostic.textContent = 'Result recieved: ' + command + ' with confidence '+ confidence +'.'; // print shit on screen
+          diagnostic.textContent = 'Result recieved: ' + command + ' with confidence ' + confidence + '.'; // print shit on screen
           console.log(event);
         };
         // callback fucntion for error handling
-        let onnomatch = function(error){
+        let onnomatch = function (error) {
           diagnostic.textContent = "I didn't recognize the command";
           console.log(error);
         };

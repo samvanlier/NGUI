@@ -14,6 +14,8 @@
 * - check afstand tussen 2 lijnen (middelpunten van elke lijn)
 * */
 
+import {getAdjacentKeyPoints} from "@tensorflow-models/posenet";
+
 /**
  * An Enum for the keypoints of the body
  */
@@ -319,6 +321,20 @@ function angleRange(kps, point1, pivot, point2, angle1, angle2,
 
 //=============================================== MAIN ==============================================================
 
+function inScreen(kps, feedback, mpc) {
+  let count = 0
+  for (let i = 0; i< kps.length; i++) {
+    if (kps[i].score > mpc)
+      count++
+    //else
+      // console.log(JSON.stringify(kps[i]))
+  }
+  if (count !== 17) {
+    return feedbackWrapper(feedback, [])
+  }
+  return feedbackWrapper("", [])
+}
+
 /**
  * Check the pose of the user
  * @param keypoints An array of key-points of the user
@@ -327,8 +343,13 @@ function angleRange(kps, point1, pivot, point2, angle1, angle2,
  * @return {*}
  */
 export function checkHeuristics(keypoints, check, mpc) {
-  //TODO: insert exercises we made below
-  var feedbackArray = checkFrontSideSquat(keypoints, mpc)
+  // get in screen (init)
+  var feedbackArray = []
+  feedbackArray.push(inScreen(keypoints, "Move more in screen.", 0.5))
+  // exercise checks
+  feedbackArray = feedbackArray.concat(checkFrontSideSquat(keypoints, mpc))
+
+  console.log(feedbackArray)
 
   //per check gaan we een entry in onze array bijvoegen
   for (var i = 0; i < feedbackArray.length; i++) {
