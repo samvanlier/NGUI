@@ -120,7 +120,7 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
 
     var tracking;
     tracking = app.started;
-    console.log(tracking);
+    
 
     let poses = [];
     let minPoseConfidence;

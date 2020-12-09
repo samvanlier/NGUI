@@ -105,12 +105,13 @@
 
           let command = result.transcript; // the word/sentence
           let confidence = result.confidence; // the confidence of the text version of the audio
+          let commandNoWS = command.replace(/\s+/g, '');
 
-          if (command.includes("start")){
+          if (commandNoWS == "start"){
             app.started = true;
           }
 
-          if (command.includes("stop")){
+          if (commandNoWS == "stop"){
             app.started = false;
           }
         };

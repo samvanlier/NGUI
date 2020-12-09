@@ -44,14 +44,19 @@ export function startRecognition(onresult){
     recognition.onresult = onresult;
 
     recognition.onspeechend = function(){
+
        recognition.start;
     }
-    recognition.onend = function(){
-            recognition.start;
-    }
+
     recognition.onerror = function(error){
+
         console.log(error);
+
     }
+
+    recognition.onend = function() {
+        recognition.start();
+    };
 
     recognition.start();
 
