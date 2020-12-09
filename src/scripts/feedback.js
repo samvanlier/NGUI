@@ -9,9 +9,7 @@ import {speak} from "./speech";
 export function createFeedback(check, nrOfOccurrences){
     var results = []
     var feedback = false
-
-    //console.log("createFeedback: "+JSON.stringify(check))
-
+    
     //for loop over error om te zien of we een
     for (var i = 0; i< check.length ; i++){
       if (check[i].occurances === nrOfOccurrences){
