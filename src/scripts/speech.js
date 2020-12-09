@@ -1,5 +1,10 @@
 // source: https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API
 
+const voices = window
+            .speechSynthesis
+            .getVoices()
+            .filter(x => x.voiceURI === "Google US English");
+
 /**
  * 
  * @param {String} msg The message that has to be spoken.
@@ -9,10 +14,6 @@ export function speak(msg, lang = 'en'){
     let utterance = new SpeechSynthesisUtterance();
     utterance.text = msg;
     utterance.lang = lang;
-    let voices = window
-                .speechSynthesis
-                .getVoices()
-                .filter(x => x.voiceURI === "Google US English");
     if (voices.length > 0){
         utterance.voice = voices[0];
     }
