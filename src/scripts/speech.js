@@ -9,7 +9,14 @@ export function speak(msg, lang = 'en'){
     let utterance = new SpeechSynthesisUtterance();
     utterance.text = msg;
     utterance.lang = lang;
-
+    let voices = window
+                .speechSynthesis
+                .getVoices()
+                .filter(x => x.voiceURI === "Google US English");
+    if (voices.length > 0){
+        utterance.voice = voices[0];
+    }
+    
     speechSynthesis.speak(utterance);
 }
 

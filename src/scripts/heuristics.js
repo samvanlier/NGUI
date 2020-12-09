@@ -295,7 +295,7 @@ function inScreen(kps, feedback, mpc) {
 export function checkHeuristics(keypoints, check, mpc) {
   // get in screen (init)
   var feedbackArray = []
-  feedbackArray.push(inScreen(keypoints, "Move more in screen.", 0.5))
+  feedbackArray.push(inScreen(keypoints, "Make sure your body is visible so that I can see you better", 0.5))
   // exercise checks
   feedbackArray = feedbackArray.concat(checkFrontSideSquat(keypoints, mpc))
 
