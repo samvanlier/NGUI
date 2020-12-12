@@ -54,9 +54,9 @@ export function startRecognition(onresult){
     }
 
     recognition.onend = function() {
-        if (!(app.started)){  //comment this to enable listening during exercise.
+        //if (!(app.started)){  //comment this to enable listening during exercise.
         recognition.start();
-        } //comment this to enable listening during exercise.
+        //} //comment this to enable listening during exercise.
     };
 
     recognition.start();

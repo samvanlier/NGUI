@@ -12,21 +12,16 @@ export function createFeedback(check, nrOfOccurrences, positiveCycle){
     var positiveFeedback = ["You are doing good", "Keep it up!", "Now that is what I call proper form"];
 
     function helper(fba, i){
-      if (i === results.length){
-        return
-      }
-      else if (results[i].occurances < fba.occurances){
+      if (i !== results.length && results[i].occurances < fba.occurances){
         results[i] = fba;
-        return
-      }
-      else{
-        helper(fba, i++);
+      }else if (i !== results.length && results[i].occurances >= fba.occurances){
+        i++
+        helper(fba, i);
       }
     }
 
     //for loop over error om te zien of we een
     for (var i = 0; i< check.length ; i++){
-
       if ((check[i].occurances >= nrOfOccurrences) && (results.length < maxRes)){
         results.push(check[i]);
       } else if ((check[i].occurances >= nrOfOccurrences)){
