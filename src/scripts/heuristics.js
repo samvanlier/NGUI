@@ -320,7 +320,6 @@ export function checkHeuristics(keypoints, check, mpc) {
       check[i] = fb
     }
   }
-  //console.log(check);
   return check
 }
 

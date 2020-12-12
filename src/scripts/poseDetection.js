@@ -1,7 +1,7 @@
 import * as posenet from '@tensorflow-models/posenet';
 import {drawKeypoints, drawSkeleton} from './util';
 import {checkHeuristics} from './heuristics';
-import {checkFeedBack, createFeedback, giveFeedback} from './feedback';
+import {createFeedback, giveFeedback, checkFeedBack} from './feedback';
 
 /**
  * Render the video feed in a 2D canvas
@@ -99,15 +99,12 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
   //per numberOfFrames we check if a given percentage is in a wrong position
   //if this is the case we print feedback and reset
   //TODO: tweak this
-  const numberOfFrames = 100;
-  const colorRefreshRate = 50;
-  const percentage = 0.75 //0.5;
-  const nrOfOccurrences = numberOfFrames * percentage;
-  
-  const numberOfSeconds = 10;
-  const numberOfSecondsPositive = 30;
-  const ratioNormalPositive = 3;
-  
+  const numberOfFrames = 100
+  const percentage = 0.75
+  const nrOfOccurrences = numberOfFrames * percentage
+
+  const ratioNormalPositive = 3
+
 
   //list of feedbacks (per feedback an array)
   //init with one check for one feedback
@@ -124,13 +121,9 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
     stats.begin();
     frames++;
 
-    //const numberOfFrames2 = stats.getFPS() * numberOfSeconds;
-    
-
     var tracking;
     tracking = app.started;
-    //tracking = true;
-    
+
 
     let poses = [];
     let minPoseConfidence;
@@ -142,21 +135,7 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
       decodingMethod: 'single-person'
     });
 
-    /*
-    console.log("<")
-    console.log(pose);
-    console.log(", ");
-    */
-
     poses = poses.concat(pose);
-
-    /*
-    console.log(poses);
-    console.log(">");
-    console.log("[");
-    console.log(pose.keypoints === poses.keypoints);
-    console.log("]");
-    */
     minPoseConfidence = +0.1;
     minPartConfidence = +0.7;
 
@@ -165,17 +144,12 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
       if (score >= minPoseConfidence && tracking) {
 
         var newCheck = checkHeuristics(keypoints, checks[checks.length - 1], minPartConfidence);
-        
 
         checks[checks.length - 1] = newCheck;
         var hasFeedback = checkFeedBack(checks[checks.length - 1]);
+
         //multiple strings possible
-
-
         if ((frames % numberOfFrames) === 0) {
-
-          
-          //frames = 0;
           cycles++;
 
           var positiveCycle;
@@ -184,27 +158,22 @@ export async function detectPoseInRealTime(video, net, ctx, videoWidth, videoHei
             positiveCycle = true;
           } else {
             positiveCycle = false;
-          } 
+          }
 
-          console.log("I am triggered every 100 frames");
           let temp = createFeedback(newCheck, nrOfOccurrences, positiveCycle);
           let feedback = temp.results;
           checks[checks.length - 1] = temp.check;
           giveFeedback(feedback);
         }
-         // return feedback to user
 
-        if (true) {
-          let c = createColors(keypoints, checks[checks.length - 1], hasFeedback, minPartConfidence);
-          keypointColors = c.kpColors;
-          adjacentKeypointColors = c.adKpColors
-        }
+         // return feedback to user
+        let c = createColors(keypoints, checks[checks.length - 1], hasFeedback, minPartConfidence);
+        keypointColors = c.kpColors;
+        adjacentKeypointColors = c.adKpColors
 
         // draw user
         drawKeypoints(keypoints, minPartConfidence, ctx, keypointColors);
         drawSkeleton(keypoints, minPartConfidence, ctx, adjacentKeypointColors);
-
-        //console.log(newCheck);
       }
     });
 

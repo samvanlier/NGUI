@@ -4,7 +4,7 @@
 
 
 /**
- * 
+ *
  * @param {String} msg The message that has to be spoken.
  * @param {String} lang The language of the message. Default 'en'.
  */
@@ -42,7 +42,7 @@ recognition.maxAlternatives = 1; // the number of alternative results that have 
  * @param {function(Object)} onnomatch A callback function to handle an error
  */
 export function startRecognition(onresult){
-    
+
     recognition.onresult = onresult;
 
     /*
@@ -51,9 +51,6 @@ export function startRecognition(onresult){
     }*/
 
     recognition.onerror = function(error){
-
-        //console.log(error);
-
     }
 
     recognition.onend = function() {

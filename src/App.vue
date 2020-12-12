@@ -5,9 +5,10 @@
     <h2 class="space" style="font-size: 4em">Step 1. Watch Tutorial</h2>
     <iframe class="border" width="640" height="360" src="https://www.youtube.com/embed/jGQ8_IMPQOY"></iframe>
     <h2 class="space" style="font-size: 4em">Step 2. Perform exercise and get feedback</h2>
-    <p style="font-size: 2em">Your virtual trainer is listening: Say <span style="color: green">"<b>start</b>"</span> when you are ready to begin!</p>
+    <p style="font-size: 2em">Your virtual trainer is listening: Say <span style="color: green">"<b>start</b>"</span>
+      when you are ready to begin!</p>
     <div>
-      <div id="info" style='display:none'>   
+      <div id="info" style='display:none'>
       </div>
 
       <div id="loading">
@@ -22,14 +23,12 @@
         </video>
         <div>
           <canvas id="output"/>
+          <div>
+            <button v-on:click="start">Start</button>
+            <button v-on:click="turnOffTracking">Stop</button>
+          </div>
           <p id="feedback" style="padding-bottom: 30px; font-size: 3em; color: #5f24ff"></p>
         </div>
-        <div>
-          <button v-on:click="turnOffTracking">Stop</button>
-        </div>
-        <div>
-          <button v-on:click="start">Start</button>
-        </div> 
       </div>
     </div>
     <p id="speech"></p>
@@ -113,14 +112,13 @@
           let command = result.transcript; // the word/sentence
           let confidence = result.confidence; // the confidence of the text version of the audio
           let commandNoWS = command.replace(/\s+/g, '');
-          console.log(command);
 
-          if (commandNoWS.includes("start")){
+          if (commandNoWS.includes("start")) {
             app.started = true;
             stopRecognition();
           }
 
-          if (commandNoWS.includes("stop")){
+          if (commandNoWS.includes("stop")) {
             app.started = false;
           }
         };
