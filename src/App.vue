@@ -90,7 +90,7 @@
     },
     components: {},
     mounted() {
-      app.started = false;
+      app.started = false
       this.initRecognition();
       this.startLoop(); // comment if testing speech (it will help)
     },
@@ -107,11 +107,11 @@
           let confidence = result.confidence; // the confidence of the text version of the audio
           let commandNoWS = command.replace(/\s+/g, '');
 
-          if (commandNoWS == "start"){
+          if (commandNoWS.includes("start")){
             app.started = true;
           }
 
-          if (commandNoWS == "stop"){
+          if (commandNoWS.includes("stop")){
             app.started = false;
           }
         };
