@@ -7,8 +7,9 @@
     <h2 class="space" style="font-size: 4em">Step 2. Perform exercise and get feedback</h2>
     <p style="font-size: 2em">Your virtual trainer is listening: Say <span style="color: green">"<b>start</b>"</span> when you are ready to begin!</p>
     <div>
-      <div id="info" style='display:none'>
+      <div id="info" style='display:none'>   
       </div>
+
       <div id="loading">
         Loading the model...
       </div>
@@ -23,6 +24,12 @@
           <canvas id="output"/>
           <p id="feedback" style="padding-bottom: 30px; font-size: 3em; color: #5f24ff"></p>
         </div>
+        <div>
+          <button v-on:click="turnOffTracking">Stop</button>
+        </div>
+        <div>
+          <button v-on:click="start">Start</button>
+        </div> 
       </div>
     </div>
     <p id="speech"></p>
@@ -44,7 +51,7 @@
   import Stats from 'stats.js'
 
   import {detectPoseInRealTime} from './scripts/poseDetection';
-  import {startRecognition} from './scripts/speech';
+  import {startRecognition, stopRecognition} from './scripts/speech';
 
   const factor = 200
   const videoWidth = 4 * factor
@@ -106,9 +113,11 @@
           let command = result.transcript; // the word/sentence
           let confidence = result.confidence; // the confidence of the text version of the audio
           let commandNoWS = command.replace(/\s+/g, '');
+          console.log(command);
 
           if (commandNoWS.includes("start")){
             app.started = true;
+            stopRecognition();
           }
 
           if (commandNoWS.includes("stop")){
@@ -117,6 +126,14 @@
         };
 
         startRecognition(onresult);
+      },
+      turnOffTracking: function () {
+        app.started = false;
+        this.initRecognition();
+      },
+      start: function () {
+        app.started = true;
+        stopRecognition();
       },
       async startLoop() {
         //start camera

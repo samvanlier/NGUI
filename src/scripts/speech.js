@@ -45,17 +45,21 @@ export function startRecognition(onresult){
     
     recognition.onresult = onresult;
 
+    /*
     recognition.onspeechend = function(){
        recognition.start;
-    }
+    }*/
 
     recognition.onerror = function(error){
-        console.log(error);
+
+        //console.log(error);
 
     }
 
     recognition.onend = function() {
+        if (!(app.started)){  //comment this to enable listening during exercise.
         recognition.start();
+        } //comment this to enable listening during exercise.
     };
 
     recognition.start();
