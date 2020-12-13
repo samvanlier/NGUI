@@ -24,7 +24,9 @@ export const Keypoints = {
 //===============================================HELPERS==============================================================
 // calculated distance between 2 points
 function distanceBetween2Points(point1, point2) { //length of line
-  return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2))
+  var a = point2.position.x - point1.position.x;
+  var b = point2.position.y - point1.position.y;
+  return Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2))
 }
 
 //wrapper function for text and affected keypooints
@@ -34,12 +36,12 @@ function feedbackWrapper(text, keypoints) {
 
 //angle between 3 points, calculate angle of the pivot point
 function angleBetween3Points(point1, pivot, point2) {
-  const b = distanceBetween2Points(point1, pivot)
-  const a = distanceBetween2Points(pivot, point2)
-  const c = distanceBetween2Points(point1, point2)
+  const b = distanceBetween2Points(point1, pivot);
+  const a = distanceBetween2Points(pivot, point2);
+  const c = distanceBetween2Points(point1, point2);
 
-  const pivotAngleInRadians = Math.acos((Math.pow(a, 2) + Math.pow(b, 2) - Math.pow(c, 2)) / (2 * a * b))
-  const pivotAngleInDegrees = pivotAngleInRadians * 180 / Math.PI
+  const pivotAngleInRadians = Math.acos((Math.pow(a, 2) + Math.pow(b, 2) - Math.pow(c, 2)) / (2 * a * b));
+  const pivotAngleInDegrees = pivotAngleInRadians * 180 / Math.PI;
 
   return pivotAngleInDegrees
 }
@@ -81,10 +83,10 @@ function distanceBetween2Lines(kps, point1, point2, point3, point4, distance, fe
   const p4 = kps[point4]
 
   if (useableKeypoints([p1, p2, p3, p4], mpc)) {
-    const aX = (p1.x + p2.x) / 2
-    const aY = (p1.y + p2.y) / 2
-    const bX = (p3.x + p4.x) / 2
-    const bY = (p3.y + p4.y) / 2
+    const aX = (p1.position.x + p2.position.x) / 2
+    const aY = (p1.position.y + p2.position.y) / 2
+    const bX = (p3.position.x + p4.position.x) / 2
+    const bY = (p3.position.y + p4.position.y) / 2
 
     const d = Math.sqrt(Math.pow(bX - aX, 2) + Math.pow(bY - aY, 2));
 
@@ -214,6 +216,7 @@ function angle(kps, point1, pivot, point2, angle, threshold = 1,
 
   if (useableKeypoints([p1, p2, p3], mpc)) {
     const a = angleBetween3Points(p1, p3, p2)
+    console.log(a);
     if (a < angle - threshold) { //undershoot
       return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}, {
         id: pivot,
@@ -365,3 +368,33 @@ function checkFrontSideSquat(keypoints, mpc) {
 
 //TODO: implement exercise (MARK)
 
+function lunges(keypoints, mpc) {
+  var feedbackArray = []
+  feedbackArray.push (angleRange (keypoints, Keypoints.leftHip, Keypoints.leftKnee, Keypoints.leftAnkle, 90, 180, "Left knee bended", "Left knee is bended too much", mpc))
+
+  feedbackArray.push (angleRange (keypoints, Keypoints.rightHip, Keypoints.rightKnee, Keypoints.rightAnkle, 90, 180, "Rightknee bended", "Right knee is bended too much", mpc))
+  
+  return feedbackArray
+
+}
+
+
+function plank(keypoints, mpc) {
+  var feedbackArray = []
+  feedbackArray.push (vertical (keypoints, Keypoints.leftShoulder, Keypoints.leftElbow, 5, "ai", "ey", mpc))
+  feedbackArray.push (vertical (keypoints, Keypoints.rightShoulder, Keypoints.rightElbow, 5, "ai", "ey", mpc))
+
+  feedbackArray.push (angle (keypoints, Keypoints.leftWrist, Keypoints.leftElbow, Keypoints.leftShoulder, 90, 5, "wait a sec", "Left elbow is bended too much", mpc))
+
+  feedbackArray.push (angle (keypoints, Keypoints.rightWrist, Keypoints.rightElbow, Keypoints.rightShoulder, 90, 5, "wat is dadde", "Right elbow is bended too much", mpc))
+  
+  
+  return feedbackArray
+}
+
+
+function lateralLegRaises() {
+  var array = []
+  array.push (angle (keypoints, Keypoints.leftAnkle, Keypoints.leftHip, Keypoints.rightAnkle, 45, 5, "", "Right elbow is bended too much", mpc))
+  return array
+}

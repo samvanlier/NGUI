@@ -20,7 +20,8 @@ export function createFeedback(check, nrOfOccurrences, positiveCycle){
         return
       }
       else{
-        helper(fba, i++);
+        i++;
+        helper(fba, i);
       }
     }
 
