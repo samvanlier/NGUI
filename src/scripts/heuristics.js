@@ -139,10 +139,10 @@ function vertical(kps, point1, point2, threshold, feedback1, feedback2, mpc) {
     const angle = Math.atan((p2.position.y - p1.position.y) / (p2.position.x - p1.position.x)) * 180 / Math.PI;
 
     if (angle < 0 && angle > -90 + threshold) {
-      return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+      return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
     } else if (angle > 0 && angle < 90 - threshold) {
       //too much to the left (need to move right)
-      return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+      return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
     }
   }
   return feedbackWrapper("", [])
@@ -171,21 +171,21 @@ function verticalRange(kps, point1, point2, angle1, angle2, feedback1, feedback2
     if (p1.position.y < p2.position.y) {
       if (a1 < 0 && a2 > 0) { // - to +
         if (a < 0 && a > a1) {
-          return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
-        } else if (a > 0 && a < a2) {
           return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+        } else if (a > 0 && a < a2) {
+          return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
         }
       } else if (a1 < 0 && a2 < 0) { // - to -
         if (a > a1) {
-          return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
-        } else if (a < a2) {
           return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+        } else if (a < a2) {
+          return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
         }
       } else if (a1 > 0 && a2 > 0) { // + to +
         if (a < a1) {
-          return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
-        } else if (a > a2) {
           return feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
+        } else if (a > a2) {
+          return feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}]);
         }
       }
     } else {
@@ -331,7 +331,12 @@ function checkFrontSideSquat(keypoints, mpc) {
   var feedbackArray = []
 
   // Hips need to be horizontal
-  feedbackArray.push(horizontal(keypoints, Keypoints.leftHip, Keypoints.rightHip, 5, "Your hips need to be parallel to the ground", mpc))
+  feedbackArray.push(
+
+    horizontal(keypoints, Keypoints.leftHip, Keypoints.rightHip, 5,
+      "Your hips need to be parallel to the ground", mpc)
+
+  )
 
   // Shoulders need to be horizontal
   feedbackArray.push(horizontal(keypoints, Keypoints.leftShoulder, Keypoints.rightShoulder, 5, "Your shoulders need to be parallel to the ground", mpc))
@@ -341,9 +346,13 @@ function checkFrontSideSquat(keypoints, mpc) {
 
   // Check neutral pose
   // left side
-  feedbackArray.push(verticalRange(keypoints, Keypoints.leftShoulder, Keypoints.leftAnkle, -85, 90,
+  feedbackArray.push(
+
+    verticalRange(keypoints, Keypoints.leftShoulder, Keypoints.leftAnkle, -85, 90,
     "Move your left foot more to the right",
-    "Move your left foot more to the left", mpc))
+    "Move your left foot more to the left", mpc)
+
+  )
 
   // right side
   feedbackArray.push(verticalRange(keypoints, Keypoints.rightShoulder, Keypoints.rightAnkle, 85, 90,
