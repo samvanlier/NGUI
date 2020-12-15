@@ -1,6 +1,9 @@
 <template></template>
 
 <script>
+/**
+ * Source : https://github.com/tensorflow/tfjs-models/blob/master/posenet/demos/demo_util.js
+ */
   /**
    * @license
    * Copyright 2019 Google LLC. All Rights Reserved.
