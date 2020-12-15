@@ -28,12 +28,22 @@
   export default {
     name: "Speech",
     components: {Trainer},
+    /**
+     * Speak a message to the user.
+     * Text-2-speech
+     * @param msg {string} A message that has to be said
+     * @param lang {string} default = 'en'. The language that has to be used for saying the message
+     */
     speak(msg, lang = 'en') {
       let utterance = new SpeechSynthesisUtterance();
       utterance.text = msg;
       utterance.lang = lang;
       speechSynthesis.speak(utterance);
     },
+    /**
+     * Listens to the users speech and handles the user speech input
+     * @param onresult {function(event)} A callback function that has to be used when a message from the user was heard
+     */
     startRecognition(onresult) {
       // recognized speech
       recognition.onresult = onresult;

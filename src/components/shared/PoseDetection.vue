@@ -34,14 +34,14 @@
       ctx.restore();
     },
     /**
-     *
+     * Creates the arrays of colors for the Keypoinst and for the adjacent Keypoints
      * @param {*} keypoints Array of key points
      * @param {*} minPartConfidence
      * @param check
      * @param {Boolean} hasFeedback If false then there is no feedback and all points and lines are green; otherwise points and line need to be colored
      */
     createColors(keypoints, check, hasFeedback, minPartConfidence) {
-      /**
+      /** 
        * Find the index in the Array of the adjacent points between the two parts
        * @param {[Object]} points Array of adjacent points
        * @param {String} part1 String name of a key point
@@ -120,7 +120,6 @@
       const nrOfOccurrences = numberOfFrames * percentage
 
       const ratioNormalPositive = 3
-
 
       //list of feedbacks (per feedback an array)
       //init with one check for one feedback
