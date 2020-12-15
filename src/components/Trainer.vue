@@ -8,11 +8,11 @@
       <div v-show="!loading && !error">
         <p class="instructions">Your virtual trainer is listening: Say <span style="color: green">"<b>start</b>"</span>
           when you are ready to begin!</p>
+        <v-icon id="icon-red" style="display: none" color="red" :size="50">mdi-microphone</v-icon>
+        <v-icon id="icon-black" color="black" :size="50">mdi-microphone</v-icon>
         <video id="video" class="video" playsinline></video>
         <div>
           <canvas id="output"></canvas>
-          <img id="micro-red" v-show="false" src="../assets/microphone-solid-red.svg"/>
-          <img id="micro-black" v-show="false" src="../assets/microphone-solid-black.svg"/>
           <div>
             <v-btn class="success start" v-on:click="start">Start</v-btn>
             <v-btn class="error" v-on:click="turnOffTracking">Stop</v-btn>
@@ -42,6 +42,7 @@
   const mobileNetFactorH = 0.25
 
   let inTrainer = true
+  let listening = false
 
   const config = {
     resNetConfig: {
@@ -71,12 +72,11 @@
     name: 'Trainer',
     data() {
       return {
-        listening: false,
         loading: true,
         error: false
       }
     },
-    components: {Speech, 'pose-detection':PoseDetection},
+    components: {Speech},
     mounted() {
       this.error = false
       this.initRecognition();
@@ -84,9 +84,6 @@
     },
     methods: {
       initRecognition() {
-        console.log("listening on true?")
-        this.listening = true
-        console.log(this.listening)
         // callback function that extracts the text that we want
         let onresult = function (event) {
           let i = event.results.length - 1;
@@ -186,24 +183,29 @@
         return video
       },
     },
+    listening(bool) {
+      let icon_black = document.getElementById('icon-black')
+      let icon_red = document.getElementById('icon-red')
+
+      if (bool){
+        icon_black.style.display = "none"
+        icon_red.style.display = "block"
+      }else{
+        icon_black.style.display = "block"
+        icon_red.style.display = "none"
+      }
+    },
     onEndFunction(recognition) {
-      /*TODO: we moeten alleen herstarten als we in traner zitten en niet in tutorial*/
       recognition.onend = function () {
-        this.listening = false
         if (inTrainer) {
           console.log("restart recognition")
           recognition.start();
-          //this.changeListening(true)
-          this.listening = true
         }
       };
     },
     stopFunction(recognition) {
       inTrainer = false
       recognition.stop();
-    },
-    changeListening(bool) {
-      this.listening = bool
     },
   }
 </script>

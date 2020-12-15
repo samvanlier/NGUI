@@ -38,15 +38,6 @@
       // recognized speech
       recognition.onresult = onresult;
 
-      let svg_black = document.getElementById("micro-black");
-      let svg_red = document.getElementById("micro-red");
-
-      const canvas = document.getElementById('output');
-      const ctx = canvas.getContext('2d');
-
-      let svg = svg_black
-      // ctx.drawImage(svg, videoWidth - 35, 5, 20, 25);
-
       // error
       recognition.onerror = function (error) {
         console.error(error)
@@ -54,6 +45,7 @@
 
       recognition.onaudiostart = function () {
         // console.log("on audio start")
+
       }
 
       recognition.onsoundstart = function () {
@@ -61,9 +53,8 @@
       }
 
       recognition.onspeechstart = function () {
-        // console.log("on speech start")
-        //set icon color red!
-        svg = svg_red
+        //console.log("on speech start")
+        Trainer.listening(true)
       }
 
       recognition.onnomatch = function () {
@@ -72,7 +63,7 @@
 
       recognition.onspeechend = function () {
         // console.log("on speech end")
-        svg = svg_black
+        Trainer.listening(false)
       }
 
       recognition.onsoundend = function () {
@@ -84,9 +75,6 @@
       }
 
       Trainer.onEndFunction(recognition)
-
-      //draw svg
-      ctx.drawImage(svg, canvas.width - 35, 5, 20, 25);
 
       recognition.start();
     },
