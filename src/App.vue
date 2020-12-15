@@ -1,207 +1,48 @@
 <template>
-  <!--<router-view/>-->
   <div id="app">
-    <h1 style="font-size: 8em">Virtual trainer</h1>
-    <h2 class="space" style="font-size: 4em">Step 1. Watch Tutorial</h2>
-    <iframe class="border" width="640" height="360" src="https://www.youtube.com/embed/jGQ8_IMPQOY"></iframe>
-    <h2 class="space" style="font-size: 4em">Step 2. Perform exercise and get feedback</h2>
-    <p style="font-size: 2em">Your virtual trainer is listening: Say <span style="color: green">"<b>start</b>"</span>
-      when you are ready to begin!</p>
-    <div>
-      <div id="info" style='display:none'>
-      </div>
+    <v-app id="inspire">
+      <router-view></router-view>
+      <v-bottom-navigation class="nav" background-color="teal" v-model="value" color="white" grow fixed>
+        <v-btn :to="{ name: 'Tutorial'}" value="tutorial">
+          <span>Tutorial</span>
+          <v-icon>mdi-help-circle-outline</v-icon>
+        </v-btn>
 
-      <div id="loading">
-        Loading the model...
-      </div>
-      <div id='main' style='display:none'>
-        <video id="video" playsinline style=" -moz-transform: scaleX(-1);
-              -o-transform: scaleX(-1);
-              -webkit-transform: scaleX(-1);
-              transform: scaleX(-1);
-              display: none;">
-        </video>
-        <div>
-          <canvas id="output"/>
-          <div>
-            <button v-on:click="start">Start</button>
-            <button v-on:click="turnOffTracking">Stop</button>
-          </div>
-          <p id="feedback" style="padding-bottom: 30px; font-size: 3em; color: #5f24ff"></p>
-        </div>
-      </div>
-    </div>
-    <p id="speech"></p>
+        <v-btn :to="{ name: 'Trainer'}" value="trainer">
+          <span>Trainer</span>
+          <v-icon>mdi-account-circle-outline</v-icon>
+        </v-btn>
+
+        <v-btn :to="{ name: 'Info'}" value="info">
+          <span>Info</span>
+          <v-icon>mdi-alert-circle-outline</v-icon>
+        </v-btn>
+      </v-bottom-navigation>
+      <Speech></Speech>
+      <PoseDetection></PoseDetection>
+      <Heuristics></Heuristics>
+      <Util></Util>
+      <Feedback></Feedback>
+    </v-app>
   </div>
 </template>
 
-<style>
-  .space {
-    margin-top: 5%;
-  }
-
-  .border {
-    border: black 5px solid;
-  }
-</style>
-
 <script>
-  import * as posenet from '@tensorflow-models/posenet'
-  import Stats from 'stats.js'
-
-  import {detectPoseInRealTime} from './scripts/poseDetection';
-  import {startRecognition, stopRecognition} from './scripts/speech';
-
-  const factor = 200
-  const videoWidth = 4 * factor
-  const videoHeight = 3 * factor
-  const stats = new Stats()
-
-  //ratios voor input
-  const resNetFactorH = 0.5
-  const resNetFactorW = 0.5
-  const mobileNetFactorW = 0.25
-  const mobileNetFactorH = 0.25
-
-  const config = {
-    resNetConfig: {
-      architecture: 'ResNet50',
-      outputStride: 32, //can be 8, 16, 32
-      inputResolution: {width: videoWidth * resNetFactorH, height: videoHeight * resNetFactorW / 2.0},
-      multiplier: 1,
-      quantBytes: 4
-    },
-    mobileNetConfig: {
-      architecture: 'MobileNetV1',
-      outputStride: 16,
-      inputResolution: {width: videoWidth * mobileNetFactorW, height: videoHeight * mobileNetFactorH},
-      multiplier: 1,
-      quantBytes: 4
-    },
-    defaultConfig: {
-      architecture: 'MobileNetV1',
-      outputStride: 32,
-      //inputResolution: 257,
-      multiplier: 0.75,
-      quantBytes: 2
-    }
-  }
+  import PoseDetection from "./components/shared/PoseDetection";
+  import Speech from "./components/shared/Speech";
+  import Heuristics from "./components/shared/Heuristics";
+  import Feedback from "./components/shared/Feedback";
+  import Util from "./components/shared/Util";
 
   export default {
-    name: 'app',
+    components: {Speech, PoseDetection, Heuristics, Util, Feedback},
     data() {
       return {
-        started: false
+        value: "app"
       }
     },
-    components: {},
-    mounted() {
-      app.started = false
-      this.initRecognition();
-      this.startLoop(); // comment if testing speech (it will help)
-    },
-    methods: {
-      initRecognition() {
-        let diagnostic = document.getElementById("speech"); // for testing
-
-        // callback function that extracts the text that we want
-        let onresult = function (event) {
-          let i = event.results.length - 1;
-          let result = event.results[i][0];
-
-          let command = result.transcript; // the word/sentence
-          let confidence = result.confidence; // the confidence of the text version of the audio
-          let commandNoWS = command.replace(/\s+/g, '');
-
-          if (commandNoWS.includes("start")) {
-            app.started = true;
-            stopRecognition();
-          }
-
-          if (commandNoWS.includes("stop")) {
-            app.started = false;
-          }
-        };
-
-        startRecognition(onresult);
-      },
-      turnOffTracking: function () {
-        app.started = false;
-        this.initRecognition();
-      },
-      start: function () {
-        app.started = true;
-        stopRecognition();
-      },
-      async startLoop() {
-        //start camera
-        const video = await this.startCamera()
-        // Load posenet model
-        const net = await posenet.load(config.resNetConfig);
-        //start detection
-        await this.detectPoseIRT(video, net)
-      },
-      async detectPoseIRT(video, net) {
-        const canvas = document.getElementById('output');
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = videoWidth;
-        canvas.height = videoHeight;
-
-        await detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight, stats)
-      },
-      async setupCamera() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error(
-            'Browser API navigator.mediaDevices.getUserMedia not available');
-        }
-        const video = document.getElementById('video');
-        video.width = videoWidth;
-        video.height = videoHeight;
-        const stream = await navigator.mediaDevices.getUserMedia({
-          'audio': false,
-          'video': {
-            facingMode: 'user',
-            width: videoWidth,
-            height: videoHeight,
-          }
-        });
-        video.srcObject = stream;
-        return new Promise((resolve) => {
-          video.onloadedmetadata = () => {
-            resolve(video);
-          };
-        });
-      },
-      /**
-       * Sets up a frames per second panel on the top-left of the window
-       */
-      setupFPS() {
-        stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-        document.body.appendChild(stats.dom);
-      },
-      async loadVideo() {
-        const video = await this.setupCamera();
-        video.play();
-        return video;
-      },
-      async startCamera() {
-        let video;
-        try {
-          video = await this.loadVideo();
-        } catch (e) {
-          let info = document.getElementById('info');
-          info.textContent = 'this browser does not support video capture,' +
-            'or this device does not have a camera';
-          info.style.display = 'block';
-          throw e;
-        }
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('main').style.display = 'block';
-
-        this.setupFPS();
-        return video
-      }
+    created() {
+      Speech.speak("hello")
     }
   }
 </script>
@@ -214,11 +55,20 @@
   #app {
     text-align: center;
     color: #2c3e50;
-    margin-top: 60px;
+    height: 100%;
   }
 
   li {
     display: inline;
     padding: 5px;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  .nav {
+    /*padding-top: 0.6%;*/
+    height: 100%;
   }
 </style>
