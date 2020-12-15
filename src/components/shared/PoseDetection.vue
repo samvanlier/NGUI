@@ -9,9 +9,8 @@
 
   export default {
     name: "PoseDetection",
-    data () {
+    data() {
       return {
-        //TODO: started false if change view
         started: true
       }
     },
@@ -95,7 +94,7 @@
         }
       }
     },
-    changeDetection(bool){
+    changeDetection(bool) {
       this.started = bool
     },
     /**
@@ -114,7 +113,6 @@
 
       //per numberOfFrames we check if a given percentage is in a wrong position
       //if this is the case we print feedback and reset
-      //TODO: tweak this
       const numberOfFrames = 100
       const percentage = 0.75
       const nrOfOccurrences = numberOfFrames * percentage
@@ -155,12 +153,8 @@
 
         env.showCamera(ctx, video, videoWidth, videoHeight);
 
-        if (firstTime){
+        if (firstTime) {
           Speech.speak("I'm listening, say start when you want to begin!")
-
-          // TODO: draw svg listening icon on top right canvas
-          //ctx.dr
-
           firstTime = false
         }
 
@@ -168,7 +162,7 @@
           poses.forEach(({score, keypoints}) => {
             if (score >= minPoseConfidence && tracking) {
 
-              if (!env.started){
+              if (!env.started) {
                 throw BreakException
               }
 

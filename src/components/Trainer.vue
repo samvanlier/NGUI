@@ -10,7 +10,9 @@
           when you are ready to begin!</p>
         <video id="video" class="video" playsinline></video>
         <div>
-            <canvas id="output"></canvas>
+          <canvas id="output"></canvas>
+          <img id="micro-red" v-show="false" src="../assets/microphone-solid-red.svg"/>
+          <img id="micro-black" v-show="false" src="../assets/microphone-solid-black.svg"/>
           <div>
             <v-btn class="success start" v-on:click="start">Start</v-btn>
             <v-btn class="error" v-on:click="turnOffTracking">Stop</v-btn>
@@ -74,7 +76,7 @@
         error: false
       }
     },
-    components: {Speech, PoseDetection},
+    components: {Speech, 'pose-detection':PoseDetection},
     mounted() {
       this.error = false
       this.initRecognition();
@@ -82,8 +84,9 @@
     },
     methods: {
       initRecognition() {
-        // let diagnostic = document.getElementById("speech"); // for testing
+        console.log("listening on true?")
         this.listening = true
+        console.log(this.listening)
         // callback function that extracts the text that we want
         let onresult = function (event) {
           let i = event.results.length - 1;
@@ -229,14 +232,14 @@
     margin-top: 15%;
   }
 
- /* .listening {
-    position: absolute !important;
-    font-size: 1.5em !important;
-    color: red !important;
-    z-index: 1 !important;
-    left: 1320px !important;
-    top: 205px !important;
-  }*/
+  /* .listening {
+     position: absolute !important;
+     font-size: 1.5em !important;
+     color: red !important;
+     z-index: 1 !important;
+     left: 1320px !important;
+     top: 205px !important;
+   }*/
 
   .video {
     -moz-transform: scaleX(-1);
