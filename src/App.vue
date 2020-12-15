@@ -38,12 +38,9 @@
     components: {Speech, PoseDetection, Heuristics, Util, Feedback},
     data() {
       return {
-        value: "app"
+        value: "trainer"
       }
     },
-    created() {
-      Speech.speak("hello")
-    }
   }
 </script>
 

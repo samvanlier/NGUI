@@ -7,10 +7,12 @@
 
 <script>
   import Speech from "./shared/Speech";
+  import PoseDetection from "./shared/PoseDetection";
   export default {
     name: "Tutorial",
     mounted() {
       Speech.stopRecognition();
+      PoseDetection.started = false
     },
   }
 </script>

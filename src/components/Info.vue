@@ -6,12 +6,14 @@
 
 <script>
   import Speech from "./shared/Speech";
+  import PoseDetection from "./shared/PoseDetection";
 
   export default {
     name: "Info",
     components: {Speech},
     mounted() {
       Speech.stopRecognition();
+      PoseDetection.started = false
     },
   }
 </script>

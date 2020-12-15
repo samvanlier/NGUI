@@ -44,31 +44,31 @@
       }
 
       recognition.onaudiostart = function () {
-        console.log("on audio start")
+        // console.log("on audio start")
       }
 
       recognition.onsoundstart = function () {
-        console.log("on sound start")
+        // console.log("on sound start")
       }
 
       recognition.onspeechstart = function () {
-        console.log("on speech start")
+        // console.log("on speech start")
       }
 
       recognition.onnomatch = function () {
-        console.log("on no match")
+        // console.log("on no match")
       }
 
       recognition.onspeechend = function () {
-        console.log("on speech end")
+        // console.log("on speech end")
       }
 
       recognition.onsoundend = function () {
-        console.log("on sound end")
+        // console.log("on sound end")
       }
 
       recognition.onaudioend = function () {
-        console.log("on audio end")
+        // console.log("on audio end")
       }
 
       Trainer.onEndFunction(recognition)

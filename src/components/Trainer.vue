@@ -1,31 +1,21 @@
 <template>
   <div>
-    <p class="space title">Perform exercise and get feedback</p>
-    <p class="instructions">Your virtual trainer is listening: Say <span style="color: green">"<b>start</b>"</span>
-      when you are ready to begin!</p>
+    <p class="space" style="font-size: 4em">Perform exercise and get feedback</p>
     <div>
-      <!--<div id="info" style='display:none'>
-      </div>-->
-
-      <!--todo: add spinner-->
-      <div id="loading">
-        Loading the model...
-      </div>
-      <div id='main' style='display:none'>
-        <video id="video" playsinline style=" -moz-transform: scaleX(-1);
-              -o-transform: scaleX(-1);
-              -webkit-transform: scaleX(-1);
-              transform: scaleX(-1);
-              display: none;">
-        </video>
+      <v-progress-circular class="loader" v-if="loading && !error" indeterminate color="teal"
+                           :size="100"></v-progress-circular>
+      <p class="red" v-if="error">This browser does not support video capture, or this device does not have a camera</p>
+      <div v-show="!loading && !error">
+        <p class="instructions">Your virtual trainer is listening: Say <span style="color: green">"<b>start</b>"</span>
+          when you are ready to begin!</p>
+        <video id="video" class="video" playsinline></video>
         <div>
-          <canvas id="output"/>
+            <canvas id="output"></canvas>
           <div>
             <v-btn class="success start" v-on:click="start">Start</v-btn>
             <v-btn class="error" v-on:click="turnOffTracking">Stop</v-btn>
           </div>
           <p id="feedback" class="feedback"></p>
-          <p class="listening" v-if="listening">Listening...</p>
         </div>
       </div>
     </div>
@@ -79,20 +69,21 @@
     name: 'Trainer',
     data() {
       return {
-        listening: true,
+        listening: false,
+        loading: true,
+        error: false
       }
     },
-    components: {Speech,PoseDetection},
+    components: {Speech, PoseDetection},
     mounted() {
-      this.listening = true
-      console.log("inTrainer is mounted! "+ this.inTrainer)
+      this.error = false
       this.initRecognition();
       this.startLoop(); // comment if testing speech (it will help)
     },
     methods: {
       initRecognition() {
         // let diagnostic = document.getElementById("speech"); // for testing
-
+        this.listening = true
         // callback function that extracts the text that we want
         let onresult = function (event) {
           let i = event.results.length - 1;
@@ -125,6 +116,9 @@
         const video = await this.startCamera()
         // Load posenet model
         const net = await posenet.load(config.resNetConfig);
+
+        this.loading = false
+
         //start detection
         await this.detectPoseIRT(video, net)
       },
@@ -142,9 +136,12 @@
           throw new Error(
             'Browser API navigator.mediaDevices.getUserMedia not available');
         }
+
         const video = document.getElementById('video');
+
         video.width = videoWidth;
         video.height = videoHeight;
+
         const stream = await navigator.mediaDevices.getUserMedia({
           'audio': false,
           'video': {
@@ -176,16 +173,12 @@
         let video;
         try {
           video = await this.loadVideo();
+          this.error = false
         } catch (e) {
-          let info = document.getElementById('info');
-          info.textContent = 'this browser does not support video capture,' +
-            'or this device does not have a camera';
-          info.style.display = 'block';
+          console.error(e)
+          this.error = true
           throw e;
         }
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('main').style.display = 'block';
-
         this.setupFPS();
         return video
       },
@@ -194,7 +187,6 @@
       /*TODO: we moeten alleen herstarten als we in traner zitten en niet in tutorial*/
       recognition.onend = function () {
         this.listening = false
-        console.log(inTrainer)
         if (inTrainer) {
           console.log("restart recognition")
           recognition.start();
@@ -203,7 +195,7 @@
         }
       };
     },
-    stopFunction(recognition){
+    stopFunction(recognition) {
       inTrainer = false
       recognition.stop();
     },
@@ -215,16 +207,12 @@
 
 <style scoped>
   .instructions {
-    font-size: 2em !important
-  }
-
-  .title {
-    font-size: 4em !important
+    font-size: 2em !important;
   }
 
   .space {
-    margin-top: 2%;
-    margin-bottom: 2%;
+    margin-top: 1%;
+    margin-bottom: 1%;
   }
 
   .start {
@@ -234,12 +222,27 @@
   .feedback {
     padding-bottom: 30px;
     font-size: 3em;
-    color: #5f24ff
+    color: #5f24ff;
   }
 
-  .listening {
-    padding-bottom: 30px;
-    font-size: 3em;
-    color: red
+  .loader {
+    margin-top: 15%;
+  }
+
+ /* .listening {
+    position: absolute !important;
+    font-size: 1.5em !important;
+    color: red !important;
+    z-index: 1 !important;
+    left: 1320px !important;
+    top: 205px !important;
+  }*/
+
+  .video {
+    -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    display: none;
   }
 </style>
