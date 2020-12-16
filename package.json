@@ -10,7 +10,7 @@
     "@tensorflow-models/posenet": "^2.2.1",
     "@tensorflow/tfjs": "^2.7.0",
     "@tensorflow/tfjs-converter": "^1.7.4",
-    "@tensorflow/tfjs-core": "^2.7.0",
+    "@tensorflow/tfjs-core": "1.7.4",
     "@tensorflow/tfjs-node": "^2.7.0",
     "@types/dat.gui": "^0.7.5",
     "@types/stats.js": "^0.17.0",
