@@ -101,13 +101,14 @@
     inScreen(kps, feedback, mpc) {
       let count = 0
       for (let i = 0; i < kps.length; i++) {
-        if (kps[i] === null || kps[i].score < mpc)
+        if (kps[i] !== null && kps[i].score > mpc)
           count++
       }
-      if (count !== 17) {
-        return feedbackWrapper(feedback, [])
+      if (count === 17) {
+        return this.feedbackWrapper("", [])
+      } else {
+        return this.feedbackWrapper(feedback, [])
       }
-      return feedbackWrapper("", [])
     },
     //===============================================HELPERS==============================================================
     // calculated distance between 2 points
@@ -303,7 +304,7 @@
       const p3 = kps[pivot]
 
       if (this.useableKeypoints([p1, p2, p3], mpc)) {
-        const a = angleBetween3Points(p1, p3, p2)
+        const a = this.angleBetween3Points(p1, p3, p2)
         console.log(a);
         if (a < angle - threshold) { //undershoot
           return this.feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}, {
@@ -339,7 +340,7 @@
       const p3 = kps[pivot]
 
       if (this.useableKeypoints([p1, p2, p3], mpc)) {
-        const a = angleBetween3Points(p1, p3, p2)
+        const a = this.angleBetween3Points(p1, p3, p2)
         if (a < angle1) { //undershoot
           return this.feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}, {
             id: pivot,
@@ -364,7 +365,7 @@
     checkHeuristics(keypoints, check, mpc) {
       // get in screen (init)
       var feedbackArray = []
-      // feedbackArray.push(inScreen(keypoints, "Move more in screen.", 0.5))
+      feedbackArray.push(this.inScreen(keypoints, "Move more in screen.", 0.5))
       // exercise checks
       feedbackArray = feedbackArray.concat(this.checkFrontSideSquat(keypoints, mpc))
 

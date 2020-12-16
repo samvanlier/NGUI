@@ -20,7 +20,7 @@
 
 <style scoped>
   .title {
-    font-size: 4em !important
+    font-size: 3em !important
   }
 
   .space {

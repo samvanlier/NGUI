@@ -70,7 +70,8 @@
     giveFeedback(fb) {
       function toString() {
         if (fb.length > 0) {
-          return fb.join("\n");
+          // return fb.join("\n");
+          return fb.join("</br>");
         }
         return "";
       }
@@ -79,7 +80,8 @@
       let current = toString();
 
       if (current != null && current !== "") {
-        ta.textContent = current;
+        //ta.textContent = current;
+        ta.innerHTML = current;
 
         // voice test
         Speech.speak(current);

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p class="space" style="font-size: 4em">Perform exercise and get feedback</p>
+    <p class="space" style="font-size: 3em">Perform exercise and get feedback</p>
     <div>
       <v-progress-circular class="loader" v-if="loading && !error" indeterminate color="teal"
                            :size="100"></v-progress-circular>
@@ -8,13 +8,13 @@
       <div v-show="!loading && !error">
         <p class="instructions">Your virtual trainer is listening: Say <span style="color: green">"<b>start</b>"</span>
           when you are ready to begin!</p>
-        <v-icon id="icon-red" style="display: none" color="red" :size="50">mdi-microphone</v-icon>
-        <v-icon id="icon-black" color="black" :size="50">mdi-microphone</v-icon>
         <video id="video" class="video" playsinline></video>
         <div>
           <canvas id="output"></canvas>
           <div>
             <v-btn class="success start" v-on:click="start">Start</v-btn>
+            <v-icon id="icon-red" class="start" style="display: none" color="red" :size="40">mdi-microphone</v-icon>
+            <v-icon id="icon-black" class="start" color="black" :size="40">mdi-microphone</v-icon>
             <v-btn class="error" v-on:click="turnOffTracking">Stop</v-btn>
           </div>
           <p id="feedback" class="feedback"></p>
@@ -100,12 +100,14 @@
           }
 
           if (commandNoWS.includes("stop")) {
+            document.getElementById('feedback').innerHTML = ""
             PoseDetection.changeDetection(false)
           }
         };
         Speech.startRecognition(onresult, true);
       },
       turnOffTracking: function () {
+        document.getElementById('feedback').innerHTML = ""
         PoseDetection.changeDetection(false)
       },
       start: function () {
@@ -189,9 +191,9 @@
 
       if (bool){
         icon_black.style.display = "none"
-        icon_red.style.display = "block"
+        icon_red.style.display = "inline"
       }else{
-        icon_black.style.display = "block"
+        icon_black.style.display = "inline"
         icon_red.style.display = "none"
       }
     },
@@ -212,12 +214,11 @@
 
 <style scoped>
   .instructions {
-    font-size: 2em !important;
+    font-size: 1.5em !important;
   }
 
   .space {
     margin-top: 1%;
-    margin-bottom: 1%;
   }
 
   .start {
@@ -226,7 +227,7 @@
 
   .feedback {
     padding-bottom: 30px;
-    font-size: 3em;
+    font-size: 2em;
     color: #5f24ff;
   }
 
