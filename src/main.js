@@ -10,14 +10,14 @@ import 'material-design-icons-iconfont/dist/material-design-icons.css'
 
 Vue.use(VueRouter);
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
 const router = new VueRouter({
   routes: [
-    { path: '/', redirect: '/trainer' },
-    {path: '/trainer',name: "Trainer", component: Trainer},
-    {path: "/info",name: "Info", component: Info},
-    {path: "/tutorial",name: "Tutorial", component: Tutorial}
+    {path: '/', redirect: '/trainer'},
+    {path: '/trainer', name: "trainer", component: Trainer},
+    {path: "/info", name: "info", component: Info},
+    {path: "/tutorial", name: "tutorial", component: Tutorial}
   ],
   mode: 'history'
 });
@@ -27,4 +27,4 @@ new Vue({
   store,
   vuetify,
   render: h => h(App)
-}).$mount('#app')
+}).$mount('#app');

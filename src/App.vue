@@ -3,26 +3,19 @@
     <v-app id="inspire">
       <router-view></router-view>
       <v-bottom-navigation class="nav" background-color="teal" v-model="value" color="white" grow fixed>
-        <v-btn :to="{ name: 'Tutorial'}" value="tutorial">
+        <v-btn :to="{ name: 'tutorial'}" value="tutorial">
           <span>Tutorial</span>
           <v-icon>mdi-help-circle-outline</v-icon>
         </v-btn>
-
-        <v-btn :to="{ name: 'Trainer'}" value="trainer">
+        <v-btn :to="{ name: 'trainer'}" value="trainer">
           <span>Trainer</span>
           <v-icon>mdi-account-circle-outline</v-icon>
         </v-btn>
-
-        <v-btn :to="{ name: 'Info'}" value="info">
+        <v-btn :to="{ name: 'info'}" value="info">
           <span>Info</span>
           <v-icon>mdi-alert-circle-outline</v-icon>
         </v-btn>
       </v-bottom-navigation>
-      <Speech></Speech>
-      <PoseDetection></PoseDetection>
-      <Heuristics></Heuristics>
-      <Util></Util>
-      <Feedback></Feedback>
     </v-app>
   </div>
 </template>
@@ -38,9 +31,9 @@
     components: {Speech, PoseDetection, Heuristics, Util, Feedback},
     data() {
       return {
-        value: "trainer"
+        value: this.$route.name
       }
-    },
+    }
   }
 </script>
 

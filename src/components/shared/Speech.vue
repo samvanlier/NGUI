@@ -41,40 +41,40 @@
       // error
       recognition.onerror = function (error) {
         console.error(error)
-      }
+      };
 
       recognition.onaudiostart = function () {
         // console.log("on audio start")
 
-      }
+      };
 
       recognition.onsoundstart = function () {
         // console.log("on sound start")
-      }
+      };
 
       recognition.onspeechstart = function () {
         //console.log("on speech start")
         Trainer.listening(true)
-      }
+      };
 
       recognition.onnomatch = function () {
         // console.log("on no match")
-      }
+      };
 
       recognition.onspeechend = function () {
         // console.log("on speech end")
         Trainer.listening(false)
-      }
+      };
 
       recognition.onsoundend = function () {
         // console.log("on sound end")
-      }
+      };
 
       recognition.onaudioend = function () {
         // console.log("on audio end")
-      }
+      };
 
-      Trainer.onEndFunction(recognition)
+      Trainer.onEndFunction(recognition);
 
       recognition.start();
     },
