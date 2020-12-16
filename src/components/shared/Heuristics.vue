@@ -363,9 +363,11 @@
      * @return {Object} Check, contains the feedback with the affected keypoints
      */
     checkHeuristics(keypoints, check, mpc) {
+      var feedbackArray = [];
+
       // get in screen (init)
-      var feedbackArray = []
-      feedbackArray.push(this.inScreen(keypoints, "Move more in screen.", 0.5))
+      feedbackArray.push(this.inScreen(keypoints, "Move more in screen.", 0.5));
+
       // exercise checks
       feedbackArray = feedbackArray.concat(this.checkFrontSideSquat(keypoints, mpc))
 

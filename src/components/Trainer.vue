@@ -42,7 +42,6 @@
   const mobileNetFactorH = 0.25
 
   let inTrainer = true
-  let listening = false
 
   const config = {
     resNetConfig: {
