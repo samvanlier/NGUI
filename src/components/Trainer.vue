@@ -2,8 +2,7 @@
   <div>
     <p class="space" style="font-size: 3em">Perform exercise and get feedback</p>
     <div>
-      <v-progress-circular class="loader" v-if="loading && !error" indeterminate color="teal"
-                           :size="100"></v-progress-circular>
+      <v-progress-circular class="loader" v-if="loading && !error" indeterminate color="teal" :size="100"></v-progress-circular>
       <p class="red" v-if="error">This browser does not support video capture, or this device does not have a camera</p>
       <div v-show="!loading && !error">
         <p class="instructions">Your virtual trainer is listening: Say <span style="color: green">"<b>start</b>"</span>
@@ -12,10 +11,10 @@
         <div>
           <canvas id="output"></canvas>
           <div>
-            <v-btn class="success start" v-on:click="start">Start</v-btn>
+            <v-btn class="success start" v-on:click="startTracking">Start</v-btn>
             <v-icon id="icon-red" class="start" style="display: none" color="red" :size="40">mdi-microphone</v-icon>
             <v-icon id="icon-black" class="start" color="black" :size="40">mdi-microphone</v-icon>
-            <v-btn class="error" v-on:click="turnOffTracking">Stop</v-btn>
+            <v-btn class="error" v-on:click="stopTracking">Stop</v-btn>
           </div>
           <p id="feedback" class="feedback"></p>
         </div>
@@ -26,23 +25,23 @@
 
 <script>
   import * as posenet from '@tensorflow-models/posenet'
-  import Stats from 'stats.js'
   import Speech from "./shared/Speech";
   import PoseDetection from "./shared/PoseDetection";
 
-  const factor = 200
-  const videoWidth = 4 * factor
-  const videoHeight = 3 * factor
-  const stats = new Stats()
+  const factor = 200;
+  const videoWidth = 4 * factor;
+  const videoHeight = 3 * factor;
 
   //ratios voor input
-  const resNetFactorH = 0.5
-  const resNetFactorW = 0.5
-  const mobileNetFactorW = 0.25
-  const mobileNetFactorH = 0.25
+  const resNetFactorH = 0.5;
+  const resNetFactorW = 0.5;
+  const mobileNetFactorW = 0.25;
+  const mobileNetFactorH = 0.25;
 
-  let inTrainer = true
+  // variable that stated we are in the trainer tab
+  let inTrainer = true;
 
+  // different pose net config models
   const config = {
     resNetConfig: {
       architecture: 'ResNet50',
@@ -65,7 +64,7 @@
       multiplier: 0.75,
       quantBytes: 2
     }
-  }
+  };
 
   export default {
     name: 'Trainer',
@@ -77,60 +76,63 @@
     },
     components: {Speech},
     mounted() {
-      this.error = false
+      this.error = false;
+      // initial speech recognition function
       this.initRecognition();
-      this.startLoop(); // comment if testing speech (it will help)
+      // start our pose detection loop
+      this.startLoop();
     },
     methods: {
       initRecognition() {
-        // callback function that extracts the text that we want
+        // callback function that analysis the user's speech (input)
         let onresult = function (event) {
-          let i = event.results.length - 1;
-          let result = event.results[i][0];
+          let index = event.results.length - 1;
+          let result = event.results[index][0];
 
           let command = result.transcript; // the word/sentence
-          let confidence = result.confidence; // the confidence of the text version of the audio
-          let commandNoWS = command.replace(/\s+/g, '');
+          let commandNoWhitespace = command.replace(/\s+/g, '');
 
-          console.log(command)
-
-          if (commandNoWS.includes("start")) {
+          // if sentence contains the start command
+          if (commandNoWhitespace.includes("start")) {
             PoseDetection.changeDetection(true)
           }
 
-          if (commandNoWS.includes("stop")) {
-            document.getElementById('feedback').innerHTML = ""
+          // if sentence contains the stop command
+          if (commandNoWhitespace.includes("stop")) {
+            document.getElementById('feedback').innerHTML = "";
             PoseDetection.changeDetection(false)
           }
         };
+
+        // start speech recognition
         Speech.startRecognition(onresult, true);
       },
-      turnOffTracking: function () {
-        document.getElementById('feedback').innerHTML = ""
+      // stops heuristic checks + visual and auditory feedback
+      stopTracking: function () {
+        document.getElementById('feedback').innerHTML = "";
         PoseDetection.changeDetection(false)
       },
-      start: function () {
+      startTracking: function () {
         PoseDetection.changeDetection(true)
       },
       async startLoop() {
         //start camera
-        const video = await this.startCamera()
+        const video = await this.startCamera();
+
         // Load posenet model
         const net = await posenet.load(config.resNetConfig);
 
-        this.loading = false
+        this.loading = false;
 
-        //start detection
-        await this.detectPoseIRT(video, net)
-      },
-      async detectPoseIRT(video, net) {
         const canvas = document.getElementById('output');
         const ctx = canvas.getContext('2d');
 
+        // canvas size
         canvas.width = videoWidth;
         canvas.height = videoHeight;
 
-        await PoseDetection.detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight, stats)
+        //start pose estimation detection in real time
+        await PoseDetection.detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight)
       },
       async setupCamera() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -140,30 +142,21 @@
 
         const video = document.getElementById('video');
 
+        //video size
         video.width = videoWidth;
         video.height = videoHeight;
 
-        const stream = await navigator.mediaDevices.getUserMedia({
+        video.srcObject = await navigator.mediaDevices.getUserMedia({
           'audio': false,
           'video': {
-            facingMode: 'user',
-            width: videoWidth,
-            height: videoHeight,
+            facingMode: 'user'
           }
         });
-        video.srcObject = stream;
         return new Promise((resolve) => {
           video.onloadedmetadata = () => {
             resolve(video);
           };
         });
-      },
-      /**
-       * Sets up a frames per second panel on the top-left of the window
-       */
-      setupFPS() {
-        stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-        document.body.appendChild(stats.dom);
       },
       async loadVideo() {
         const video = await this.setupCamera();
@@ -176,36 +169,34 @@
           video = await this.loadVideo();
           this.error = false
         } catch (e) {
-          console.error(e)
-          this.error = true
+          console.error(e);
+          this.error = true;
           throw e;
         }
-        this.setupFPS();
         return video
       },
     },
     listening(bool) {
-      let icon_black = document.getElementById('icon-black')
-      let icon_red = document.getElementById('icon-red')
+      let icon_black = document.getElementById('icon-black');
+      let icon_red = document.getElementById('icon-red');
 
-      if (bool){
-        icon_black.style.display = "none"
+      if (bool) {
+        icon_black.style.display = "none";
         icon_red.style.display = "inline"
-      }else{
-        icon_black.style.display = "inline"
+      } else {
+        icon_black.style.display = "inline";
         icon_red.style.display = "none"
       }
     },
     onEndFunction(recognition) {
       recognition.onend = function () {
         if (inTrainer) {
-          console.log("restart recognition")
           recognition.start();
         }
       };
     },
     stopFunction(recognition) {
-      inTrainer = false
+      inTrainer = false;
       recognition.stop();
     },
   }
@@ -233,15 +224,6 @@
   .loader {
     margin-top: 15%;
   }
-
-  /* .listening {
-     position: absolute !important;
-     font-size: 1.5em !important;
-     color: red !important;
-     z-index: 1 !important;
-     left: 1320px !important;
-     top: 205px !important;
-   }*/
 
   .video {
     -moz-transform: scaleX(-1);

@@ -33,14 +33,14 @@
       ctx.restore();
     },
     /**
-     * Creates the arrays of colors for the Keypoinst and for the adjacent Keypoints
+     * Creates the arrays of colors for the Keypoints and for the adjacent Keypoints (lines)
      * @param {*} keypoints Array of key points
-     * @param {*} minPartConfidence
-     * @param check
+     * @param {*} check Collection of possible mistakes and occurrences
      * @param {Boolean} hasFeedback If false then there is no feedback and all points and lines are green; otherwise points and line need to be colored
+     * @param {*} minPartConfidence
      */
     createColors(keypoints, check, hasFeedback, minPartConfidence) {
-      /** 
+      /**
        * Find the index in the Array of the adjacent points between the two parts
        * @param {[Object]} points Array of adjacent points
        * @param {String} part1 String name of a key point
@@ -74,11 +74,11 @@
           adKpColors: adKpColors
         }
       } else {
-        for (var i = 0; i < check.length; i++) {
+        for (let i = 0; i < check.length; i++) {
           for (let j = 0; j < check[i].keypoints.length; j++) {
-            kpColors[check[i].keypoints[j].id] = bad
+            kpColors[check[i].keypoints[j].id] = bad;
             for (let k = 0; k < check[i].keypoints.length; k++) {
-              if (j !== k) { //&& j < k?
+              if (j !== k) {
                 let index = getIndex(adKeypoints, check[i].keypoints[j].part, check[i].keypoints[k].part);
                 if (index !== -1) {
                   adKpColors[index] = bad;
@@ -104,38 +104,39 @@
      * @param {CanvasRenderingContext2D} ctx
      * @param {Number} videoWidth The width of the video
      * @param {Number} videoHeight The height of the video
-     * @param {*} stats
      */
-    async detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight, stats) {
+    async detectPoseInRealTime(video, net, ctx, videoWidth, videoHeight) {
+      let firstTime = true;
+
+      // every pose detection is one frame
       let frames = 0;
+      // every numberOfFrames is one cycle
       let cycles = 0;
-      let firstTime = true
 
-      //per numberOfFrames we check if a given percentage is in a wrong position
-      //if this is the case we print feedback and reset
-      const numberOfFrames = 100
-      const percentage = 0.75
-      const nrOfOccurrences = numberOfFrames * percentage
+      /*per numberOfFrames we check if a given percentage is in a wrong position
+      if this is the case we print feedback and reset*/
+      const numberOfFrames = 100;
+      const percentage = 0.75;
+      const nrOfOccurrences = numberOfFrames * percentage;
 
-      const ratioNormalPositive = 3
+      /* number of cycles before a possible positive feedback is given */
+      const ratioNormalPositive = 3;
 
-      //list of feedbacks (per feedback an array)
-      //init with one check for one feedback
-      let checks = [[]]
+      // list of feedback given per frame
+      let checks = [[]];
 
+      //default keypoint colors
       let keypointColors = new Array(17).fill("green");
+      //default keypoint line colors
       let adjacentKeypointColors = new Array(12).fill("green");
 
-      // since images are being fed from a webcam, we want to feed in the original image and then just flip the keypoints' x coordinates.
-      // If instead we flip the image, then correcting left-right keypoint pairs requires a permutation on all the keypoints.
+      /* since images are being fed from a webcam, we want to feed in the original image and then just flip the keypoints' x coordinates.
+      If instead we flip the image, then correcting left-right keypoint pairs requires a permutation on all the keypoints. */
       const flipPoseHorizontal = true;
 
+      // loop for continuous detection of the pose
       async function poseDetectionFrame(env) {
-        stats.begin();
         frames++;
-
-        let tracking = env.started
-        let BreakException = {}
 
         let poses = [];
         let minPoseConfidence;
@@ -154,56 +155,53 @@
         env.showCamera(ctx, video, videoWidth, videoHeight);
 
         if (firstTime) {
-          Speech.speak("I'm listening, say start when you want to begin!")
+          Speech.speak("I'm listening, say start when you want to begin!");
           firstTime = false
         }
 
-        try {
-          poses.forEach(({score, keypoints}) => {
-            if (score >= minPoseConfidence && tracking) {
+        poses.forEach(({score, keypoints}) => {
+          if (score >= minPoseConfidence && env.started) {
 
-              if (!env.started) {
-                throw BreakException
+            // retrieve last check
+            let lastCheck = checks[checks.length - 1];
+            let newCheck = Heuristics.checkHeuristics(keypoints, lastCheck, minPartConfidence);
+
+            // every numberOfFrames we give back the feedback if we have feedback
+            if ((frames % numberOfFrames) === 0) {
+              cycles++;
+
+              let temp;
+
+              if (cycles === ratioNormalPositive) {
+                cycles = 0;
+                temp = Feedback.createFeedback(newCheck, nrOfOccurrences, true);
+              } else {
+                temp = Feedback.createFeedback(newCheck, nrOfOccurrences, false);
               }
 
-              var newCheck = Heuristics.checkHeuristics(keypoints, checks[checks.length - 1], minPartConfidence);
-
+              let feedback = temp.results;
+              checks[checks.length - 1] = temp.check;
+              Feedback.giveFeedback(feedback);
+            } else {
+              //update last check with new check (but you can also add to the checks array if we want to store more checks)
+              //but here we store only one check
               checks[checks.length - 1] = newCheck;
-              var hasFeedback = Feedback.checkFeedBack(checks[checks.length - 1]);
-
-              //multiple strings possible
-              if ((frames % numberOfFrames) === 0) {
-                cycles++;
-
-                var positiveCycle;
-                if (cycles === ratioNormalPositive) {
-                  cycles = 0;
-                  positiveCycle = true;
-                } else {
-                  positiveCycle = false;
-                }
-
-                let temp = Feedback.createFeedback(newCheck, nrOfOccurrences, positiveCycle);
-                let feedback = temp.results;
-                checks[checks.length - 1] = temp.check;
-                Feedback.giveFeedback(feedback);
-              }
-
-              // return feedback to user
-              let c = env.createColors(keypoints, checks[checks.length - 1], hasFeedback, minPartConfidence);
-              keypointColors = c.kpColors;
-              adjacentKeypointColors = c.adKpColors
-
-              // draw user
-              Util.drawKeypoints(keypoints, minPartConfidence, ctx, keypointColors);
-              Util.drawSkeleton(keypoints, minPartConfidence, ctx, adjacentKeypointColors);
             }
-          });
-        } catch (e) {
-          if (e !== BreakException) throw e;
-        }
 
-        stats.end();
+            // check if we have some feedback that we need to give back to the user
+            let hasFeedback = Feedback.checkFeedBack(checks[checks.length - 1]);
+
+            // get coloring of keypoints and lines
+            let c = env.createColors(keypoints, checks[checks.length - 1], hasFeedback, minPartConfidence);
+
+            keypointColors = c.kpColors;
+            adjacentKeypointColors = c.adKpColors;
+
+            // draw user keypoints and lines
+            Util.drawKeypoints(keypoints, minPartConfidence, ctx, keypointColors);
+            Util.drawSkeleton(keypoints, minPartConfidence, ctx, adjacentKeypointColors);
+          }
+        });
 
         // is a function of the default js api
         // link to docs: https://developer.mozilla.org/nl/docs/Web/API/Window/requestAnimationFrame
@@ -212,6 +210,7 @@
         });
       }
 
+      // initiate pose detection loop + camera
       poseDetectionFrame(this);
     }
   }

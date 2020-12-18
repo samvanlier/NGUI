@@ -8,6 +8,7 @@
 <script>
   import Speech from "./shared/Speech";
   import PoseDetection from "./shared/PoseDetection";
+
   export default {
     name: "Tutorial",
     mounted() {
@@ -20,7 +21,7 @@
 <style scoped>
   .space {
     margin-top: 2%;
-    margin-bottom: 2%;
+    margin-bottom: 5%;
   }
 
   .border {
