@@ -68,3 +68,5 @@ This is used for the body tracking.
 
 Second we used the [Web Speech Api](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) which is part of JavaScript.
 This is used for the Text-2-Speech and the speech recognition.
+
+All other packages used are need because of the previous dependencies or are part of VueJs which is the framework used to build the project.
