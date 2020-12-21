@@ -317,15 +317,11 @@
       if (this.useableKeypoints([p1, p2, p3], mpc)) {
         const a = this.angleBetween3Points(p1, p3, p2);
         if (a < angle1) { //undershoot
-          return this.feedbackWrapper(feedback1, [{id: point1, part: p1.part}, {id: point2, part: p2.part}, {
-            id: pivot,
-            part: p3.part
-          }]);
+          return this.feedbackWrapper(feedback1,
+            [{id: point1, part: p1.part}, {id: point2, part: p2.part}, {id: pivot, part: p3.part}]);
         } else if (a > angle2) { //overshoot
-          return this.feedbackWrapper(feedback2, [{id: point1, part: p1.part}, {id: point2, part: p2.part}, {
-            id: pivot,
-            part: p3.part
-          }]);
+          return this.feedbackWrapper(feedback2,
+            [{id: point1, part: p1.part}, {id: point2, part: p2.part}, {id: pivot, part: p3.part]);
         }
       }
       return this.feedbackWrapper("", [])

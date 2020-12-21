@@ -38,7 +38,8 @@
       Alternatively, if you can not use a microphone, you can use the “start” and “stop” buttons.</p>
 
     <h4>Privacy Concerns</h4>
-    <p>Please know that neither your microphone input nor your camera feed is recorded or stored anywhere.</p>
+    <p>Please know that neither your microphone input nor your camera feed is recorded or stored anywhere by us. However the
+      voice recognition is send to google's cloud service.</p>
   </div>
 </template>
 
